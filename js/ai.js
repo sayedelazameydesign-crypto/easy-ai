@@ -4,6 +4,27 @@
  * In production, this would connect to a real AI API
  */
 
+
+const FEATURE_CATALOG = Object.freeze({
+    chat: Object.freeze({ status: 'demo' }),
+    translate: Object.freeze({ status: 'unavailable' }),
+    summarize: Object.freeze({ status: 'unavailable' }),
+    code: Object.freeze({ status: 'unavailable' }),
+    image: Object.freeze({ status: 'unavailable' }),
+    voice: Object.freeze({ status: 'unavailable' })
+});
+
+function resolveFeatureActivation(tool, declaredStatus) {
+    const runtimeStatus = FEATURE_CATALOG[tool]?.status;
+    if (!runtimeStatus || runtimeStatus !== declaredStatus) {
+        return Object.freeze({ allowed: false, reason: 'status_mismatch' });
+    }
+    if (runtimeStatus === 'unavailable') {
+        return Object.freeze({ allowed: false, reason: 'unavailable' });
+    }
+    return Object.freeze({ allowed: true, reason: runtimeStatus });
+}
+
 class EasyAI {
     constructor() {
         this.conversationHistory = [];
@@ -57,7 +78,10 @@ class EasyAI {
             goodbye: /(وداعا|bye|goodbye|مع السلامة|bay)/i,
             love: /(احبك|love you|i love|♥|❤|❤️)/i,
             code: /(code|كود|برمج|programming|js|python|html|css)/i,
-            translate: /(ترجم|translate|ترجمة)/i
+            translate: /(ترجم|translate|ترجمة)/i,
+            summarize: /(لخص|تلخيص|summarize|summary)/i,
+            image: /(صورة|صور|image|photo)/i,
+            voice: /(صوت|تسجيل|voice|audio|transcri)/i
         };
         
         // English patterns
@@ -70,13 +94,22 @@ class EasyAI {
             goodbye: /(bye|goodbye|see you|farewell|cya)/i,
             love: /(love you|i love|heart|❤️|♥)/i,
             code: /(code|programming|debug|function|javascript|python)/i,
-            translate: /(translate|translation)/i
+            translate: /(translate|translation)/i,
+            summarize: /(summarize|summary)/i,
+            image: /(image|photo|picture)/i,
+            voice: /(voice|audio|transcri)/i
         };
         
         const patterns = lang === 'ar' ? arPatterns : enPatterns;
+        // Check unavailable capabilities first so generic words such as
+        // "help" / "ساعدني" cannot route a tool request into demo chat.
+        const intentOrder = [
+            'translate', 'summarize', 'code', 'image', 'voice',
+            'greeting', 'help', 'joke', 'fact', 'thanks', 'goodbye', 'love'
+        ];
         
-        for (const [intent, pattern] of Object.entries(patterns)) {
-            if (pattern.test(msg)) {
+        for (const intent of intentOrder) {
+            if (patterns[intent].test(msg)) {
                 return intent;
             }
         }
@@ -93,6 +126,15 @@ class EasyAI {
         
         // Simulate thinking delay
         await this.simulateDelay();
+
+        // Never simulate success for capabilities that are not connected.
+        if (FEATURE_CATALOG[intent]?.status === 'unavailable') {
+            const response = window.i18n?.t('feature.unavailable.notice') ||
+                'This feature is currently unavailable.';
+            this.conversationHistory.push({ role: 'user', content: userMessage, timestamp: Date.now() });
+            this.conversationHistory.push({ role: 'assistant', content: response, timestamp: Date.now() });
+            return response;
+        }
         
         // Get response key
         const responseKeys = this.responses[intent] || this.responses.default;
@@ -130,20 +172,20 @@ class EasyAI {
         // Check for questions
         if (msg.includes('?') || msg.includes('؟')) {
             return lang === 'ar' 
-                ? `سؤال interesante! 🤔 دعني أفكر... 💭 ${window.i18n.t('ai.default')}`
+                ? `سؤال مثير للاهتمام! 🤔 دعني أفكر... 💭 ${window.i18n.t('ai.default')}`
                 : `Interesting question! 🤔 Let me think... 💭 ${window.i18n.t('ai.default')}`;
         }
         
         // Check for code-related
         if (/code|function|bug|error|كود|خطأ|برنامج/i.test(msg)) {
             return lang === 'ar'
-                ? `💻 seems like سؤال برمجي! يمكنني مساعدتك في:
-• كتابة كود clean
-• explicar الأخطاء
-• Code review
-• suggestions تحسين
+                ? `💻 يبدو أنه سؤال برمجي! يمكنني مساعدتك في:
+• كتابة شيفرة واضحة
+• شرح الأخطاء
+• مراجعة الشيفرة
+• اقتراح تحسينات
 
-ما اللغة البرمجية التي need?`
+ما اللغة البرمجية التي تحتاج إلى المساعدة فيها؟`
                 : `💻 Looks like a coding question! I can help you with:
 • Writing clean code
 • Explaining errors
@@ -156,12 +198,12 @@ What programming language do you need help with?`;
         // Check for translation request
         if (/ترجم|translate/i.test(msg)) {
             return lang === 'ar'
-                ? `🌐 خدمة الترجمة جاهزة! 
+                ? `🌐 خدمة الترجمة التجريبية جاهزة!
 
-可以ني الترجمة بين:
-• العربية ↔ English
-• نصوص قصيرة وطويلة
-• fonctionnaires
+يمكنني مساعدتك في:
+• العربية ↔ الإنجليزية
+• النصوص القصيرة والطويلة
+• الأسلوب الرسمي وغير الرسمي
 
 ما النص الذي تريد ترجمته؟`
                 : `🌐 Translation service ready! 
@@ -209,7 +251,7 @@ What text would you like me to translate?`;
             ar: [
                 `✨ بناءً على: "${prompt}"، إليك اقتراحي...`,
                 `🚀 فكرة رائعة! دعني أساعدك في: "${prompt}"`,
-                `💡 после thinking في "${prompt}"، here's ما trouvéته...`
+                `💡 بعد التفكير في "${prompt}"، إليك ما توصلت إليه...`
             ],
             en: [
                 `✨ Based on: "${prompt}", here's my suggestion...`,
@@ -227,4 +269,10 @@ What text would you like me to translate?`;
 // Create global AI instance
 if (typeof window !== 'undefined') {
     window.easyAI = new EasyAI();
+    window.easyAIFeatures = FEATURE_CATALOG;
+    window.resolveFeatureActivation = resolveFeatureActivation;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { EasyAI, FEATURE_CATALOG, resolveFeatureActivation };
 }

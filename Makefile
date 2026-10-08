@@ -9,7 +9,7 @@ test:
 	$(PY) -m pytest -q
 
 scan:
-	$(PY) -m sync scan data site config docs README.md SECURITY.md --gate
+	$(PY) -m sync scan data site config docs js css tests-js index.html README.md SECURITY.md --gate
 
 doctor:
 	$(PY) -m sync doctor

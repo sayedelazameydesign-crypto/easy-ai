@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Easy AI - ذكاء اصطناعي سهل | Your AI Assistant</title>
+    <title>Easy AI - تجربة محادثة توضيحية | Demo Chat</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -46,14 +46,14 @@
         <div class="hero-content">
             <div class="hero-badge">
                 <span class="badge-dot"></span>
-                <span data-i18n="hero.badge">✨ ذكاء اصطناعي من الجيل الجديد</span>
+                <span data-i18n="hero.badge">✨ تجربة محادثة توضيحية</span>
             </div>
             <h1 class="hero-title">
-                <span data-i18n="hero.title1">ذكاء اصطناعي</span>
-                <span class="gradient-text" data-i18n="hero.title2">سهل وقوي</span>
+                <span data-i18n="hero.title1">مساعد تجريبي</span>
+                <span class="gradient-text" data-i18n="hero.title2">واضح وسهل</span>
             </h1>
             <p class="hero-description" data-i18n="hero.description">
-               助力 AIaken - منصة ذكاء اصطناعي arabe moderne qui rend l'IA accessible à tous. Discutez, créez et découvrez la puissance de l'intelligence artificielle.
+               واجهة ثنائية اللغة تستعرض تجربة محادثة بردود ثابتة. لا يوجد نموذج ذكاء اصطناعي أو مزود خارجي متصل حاليًا.
             </p>
             <div class="hero-buttons">
                 <a href="#chat" class="btn btn-primary">
@@ -66,16 +66,16 @@
             </div>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">10K+</span>
-                    <span class="stat-label" data-i18n="stats.users">مستخدم</span>
+                    <span class="stat-number">—</span>
+                    <span class="stat-label" data-i18n="stats.users">لا توجد بيانات استخدام</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">50K+</span>
-                    <span class="stat-label" data-i18n="stats.chats">محادثة</span>
+                    <span class="stat-number">Demo</span>
+                    <span class="stat-label" data-i18n="stats.chats">ردود ثابتة</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">99%</span>
-                    <span class="stat-label" data-i18n="stats.satisfaction">رضا</span>
+                    <span class="stat-number">Local</span>
+                    <span class="stat-label" data-i18n="stats.satisfaction">تشغيل محلي</span>
                 </div>
             </div>
         </div>
@@ -93,39 +93,45 @@
     <section id="tools" class="features">
         <div class="section-header">
             <span class="section-badge" data-i18n="features.badge">🛠️ الأدوات</span>
-            <h2 class="section-title" data-i18n="features.title">أدوات ذكاء اصطناعي قوية</h2>
-            <p class="section-description" data-i18n="features.description">اكتشف مجموعة متكاملة من الأدوات المدعومة بالذكاء الاصطناعي</p>
+            <h2 class="section-title" data-i18n="features.title">حالة ميزات العرض</h2>
+            <p class="section-description" data-i18n="features.description">توضح كل بطاقة ما يعمل كتجربة وما يحتاج إلى خدمة غير متصلة.</p>
         </div>
         <div class="features-grid">
-            <div class="feature-card" data-tool="chat">
+            <div class="feature-card" data-tool="chat" data-status="demo">
                 <div class="feature-icon">💬</div>
-                <h3 data-i18n="features.chat.title">محادثة ذكية</h3>
-                <p data-i18n="features.chat.desc">تحدث مع الذكاء الاصطناعي بلغتك المفضلة</p>
+                <span class="feature-status status-demo" data-i18n="status.demo">تجريبي</span>
+                <h3 data-i18n="features.chat.title">محادثة تجريبية</h3>
+                <p data-i18n="features.chat.desc">جرّب ردودًا ثابتة ومحاكاة بسيطة بالعربية أو الإنجليزية.</p>
             </div>
-            <div class="feature-card" data-tool="translate">
+            <div class="feature-card" data-tool="translate" data-status="unavailable">
                 <div class="feature-icon">🌐</div>
-                <h3 data-i18n="features.translate.title">ترجمة فورية</h3>
-                <p data-i18n="features.translate.desc">ترجم نصوصك بين العربية والإنجليزية</p>
+                <span class="feature-status status-unavailable" data-i18n="status.unavailable">غير متاح</span>
+                <h3 data-i18n="features.translate.title">الترجمة</h3>
+                <p data-i18n="features.translate.desc">غير متاحة؛ لم تُربط خدمة ترجمة فعلية بعد.</p>
             </div>
-            <div class="feature-card" data-tool="summarize">
+            <div class="feature-card" data-tool="summarize" data-status="unavailable">
                 <div class="feature-icon">📝</div>
+                <span class="feature-status status-unavailable" data-i18n="status.unavailable">غير متاح</span>
                 <h3 data-i18n="features.summarize.title">تلخيص النصوص</h3>
-                <p data-i18n="features.summarize.desc">احصل على ملخصات سريعة لأي نص طويل</p>
+                <p data-i18n="features.summarize.desc">غير متاح؛ لا يوجد نموذج متصل لتلخيص النصوص.</p>
             </div>
-            <div class="feature-card" data-tool="code">
+            <div class="feature-card" data-tool="code" data-status="unavailable">
                 <div class="feature-icon">💻</div>
+                <span class="feature-status status-unavailable" data-i18n="status.unavailable">غير متاح</span>
                 <h3 data-i18n="features.code.title">مساعد برمجي</h3>
-                <p data-i18n="features.code.desc">احصل على مساعدة في كتابة وتصحيح الكود</p>
+                <p data-i18n="features.code.desc">غير متاح؛ لا توجد خدمة متصلة لتحليل الشيفرة.</p>
             </div>
-            <div class="feature-card" data-tool="image">
+            <div class="feature-card" data-tool="image" data-status="unavailable">
                 <div class="feature-icon">🎨</div>
+                <span class="feature-status status-unavailable" data-i18n="status.unavailable">غير متاح</span>
                 <h3 data-i18n="features.image.title">وصف الصور</h3>
-                <p data-i18n="features.image.desc">أنشئ أوصافاً إبداعية للصور</p>
+                <p data-i18n="features.image.desc">غير متاح؛ الواجهة لا تستقبل الصور أو تحللها.</p>
             </div>
-            <div class="feature-card" data-tool="voice">
+            <div class="feature-card" data-tool="voice" data-status="unavailable">
                 <div class="feature-icon">🎤</div>
+                <span class="feature-status status-unavailable" data-i18n="status.unavailable">غير متاح</span>
                 <h3 data-i18n="features.voice.title">تحويل صوت لنص</h3>
-                <p data-i18n="features.voice.desc">حول смертельlyое audio إلى نص مكتوب</p>
+                <p data-i18n="features.voice.desc">غير متاح؛ لا يوجد تسجيل أو تحويل للصوت.</p>
             </div>
         </div>
     </section>
@@ -135,7 +141,7 @@
         <div class="section-header">
             <span class="section-badge" data-i18n="chat.badge">🤖 الدردشة</span>
             <h2 class="section-title" data-i18n="chat.title">تحدث مع Easy AI</h2>
-            <p class="section-description" data-i18n="chat.description">اسأل أي سؤال واحصل على إجابة فورية</p>
+            <p class="section-description" data-i18n="chat.description">جرّب محادثة توضيحية تعتمد على ردود معدّة مسبقًا.</p>
         </div>
         <div class="chat-container">
             <div class="chat-header">
@@ -144,7 +150,7 @@
                     <span class="chat-name">Easy AI</span>
                     <span class="chat-status">
                         <span class="status-dot"></span>
-                        <span data-i18n="chat.online">متصل الآن</span>
+                        <span data-i18n="chat.online">وضع تجريبي</span>
                     </span>
                 </div>
                 <div class="chat-tools">
@@ -155,7 +161,7 @@
                 <div class="message ai-message">
                     <div class="message-avatar">🤖</div>
                     <div class="message-content">
-                        <p data-i18n="chat.welcome">مرحباً! أنا Easy AI 👋 أنا مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟</p>
+                        <p data-i18n="chat.welcome">مرحبًا! هذه محادثة تجريبية بردود ثابتة، وليست نموذج ذكاء اصطناعي متصلًا. اختر اقتراحًا لتجربة الواجهة.</p>
                         <span class="message-time">الآن</span>
                     </div>
                 </div>
@@ -164,10 +170,10 @@
                 <button class="suggestion-btn" data-suggestion="hello" data-i18n="suggestions.hello">👋 قل مرحباً</button>
                 <button class="suggestion-btn" data-suggestion="help" data-i18n="suggestions.help">🆘 ما الذي يمكنك فعله؟</button>
                 <button class="suggestion-btn" data-suggestion="joke" data-i18n="suggestions.joke">😄 أخبرني نكتة</button>
-                <button class="suggestion-btn" data-suggestion="fact" data-i18n="suggestions.fact">🧠 autonomie un fait intéressant</button>
+                <button class="suggestion-btn" data-suggestion="fact" data-i18n="suggestions.fact">🧠 أخبرني حقيقة ممتعة</button>
             </div>
             <div class="chat-input-container">
-                <button class="input-tool-btn" id="attachBtn" title="Attach">📎</button>
+                <button class="input-tool-btn" id="attachBtn" title="غير متاح" disabled aria-disabled="true">📎</button>
                 <textarea
                     id="chatInput"
                     class="chat-input"
@@ -175,7 +181,7 @@
                     data-i18n-placeholder="chat.placeholder"
                     rows="1"
                 ></textarea>
-                <button class="input-tool-btn" id="voiceBtn" title="Voice">🎤</button>
+                <button class="input-tool-btn" id="voiceBtn" title="غير متاح" disabled aria-disabled="true">🎤</button>
                 <button class="send-btn" id="sendBtn">
                     <span class="send-icon">➤</span>
                 </button>
@@ -190,12 +196,10 @@
                 <span class="section-badge" data-i18n="about.badge">ℹ️ عن المشروع</span>
                 <h2 class="section-title" data-i18n="about.title">ما هو Easy AI؟</h2>
                 <p data-i18n="about.description1">
-                    Easy AI هو مشروع مفتوح المصدر يهدف إلى جعل الذكاء الاصطناعي في متناول الجميع. 
-                    نوفر واجهة سهلة الاستخدام تدعم اللغة العربية والإنجليزية.
+                    Easy AI مشروع مفتوح المصدر يعرض واجهة محادثة ثنائية اللغة، مع قناة مستقلة وآمنة لمزامنة البيانات المنقّحة.
                 </p>
                 <p data-i18n="about.description2">
-                    Whether you're a developer, student, or curious mind, Easy AI provides powerful AI tools 
-                    without the complexity.
+                    المحادثة الحالية محاكاة توضيحية، أما الترجمة والتلخيص والبرمجة والصور والصوت فتحتاج إلى خدمات غير متصلة بعد.
                 </p>
                 <div class="about-features">
                     <div class="about-feature">
@@ -231,10 +235,9 @@
   <span class="property">name</span>: <span class="string">"Easy AI"</span>,
   <span class="property">version</span>: <span class="string">"1.0.0"</span>,
   <span class="property">languages</span>: [<span class="string">"ar"</span>, <span class="string">"en"</span>],
-  <span class="property">features</span>: [<span class="string">"chat"</span>, <span class="string">"translate"</span>, <span class="string">"code"</span>],
-  <span class="method">start</span>() {
-    <span class="keyword">return</span> <span class="string">"🚀 AI is ready!"</span>;
-  }
+  <span class="property">chat</span>: <span class="string">"demo"</span>,
+  <span class="property">translate</span>: <span class="string">"unavailable"</span>,
+  <span class="property">summarize</span>: <span class="string">"unavailable"</span>
 };</code></pre>
                 </div>
             </div>

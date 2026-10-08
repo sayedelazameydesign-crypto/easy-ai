@@ -1150,3 +1150,17 @@ section {
 ::selection {
     background: var(--accent-primary);
     color: white;
+
+/* Explicit product capability states */
+.feature-status {
+    display: inline-flex;
+    margin-bottom: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-demo { color: #c7d2fe; background: rgba(99, 102, 241, 0.2); }
+.status-unavailable { color: #fecaca; background: rgba(239, 68, 68, 0.16); }
+.feature-card[data-status="unavailable"] { cursor: not-allowed; opacity: 0.82; }
+.input-tool-btn:disabled { cursor: not-allowed; opacity: 0.4; }

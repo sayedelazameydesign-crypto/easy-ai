@@ -2,8 +2,8 @@
 
 > ذكاء اصطناعي سهل للجميع | AI made easy for everyone
 
-A modern, bilingual (Arabic/English) AI assistant web application with a beautiful dark theme —
-plus a **secure sync channel** that mirrors a scoped Google Drive folder into this repo and
+A modern bilingual (Arabic/English) **demo chat interface with preset responses** — no AI
+model or external provider is currently connected — plus a **secure sync channel** that mirrors a scoped Google Drive folder into this repo and
 publishes it to the world through GitHub Pages.
 
 ![Easy AI](https://img.shields.io/badge/version-1.1.0-blue)
@@ -13,12 +13,13 @@ publishes it to the world through GitHub Pages.
 
 ## ✨ Features
 
-- 🤖 **AI Chat** - Interactive chat interface with smart responses
+- 🤖 **Demo Chat** - Interactive bilingual UI with preset, simulated responses
 - 🌐 **Bilingual** - Full Arabic (RTL) and English (LTR) support
 - 🌙 **Dark Theme** - Beautiful modern dark design with animations
 - 📱 **Responsive** - Works on all devices
 - ⚡ **Fast** - Pure HTML/CSS/JS, no frameworks
 - 🎨 **Modern UI** - Glassmorphism, gradients, and smooth animations
+- 🧭 **Honest capability states** - Demo and unavailable features are labeled explicitly
 - 🔄 **Secure Sync Channel** - Hourly, sanitized Google Drive → repo → public dashboard
 
 ## 🔄 قناة المزامنة الآمنة · Secure Sync Channel
@@ -119,15 +120,20 @@ The app supports both **Arabic** and **English** with full RTL/LTR layout switch
 
 ## 🤖 AI Features (Demo)
 
-The current version includes a **demo AI engine** that simulates responses:
+The current version includes a **demo engine with preset responses**, not a connected AI model.
 
-- 💬 Smart conversations
-- 🌐 Translation assistance
-- 📝 Text summarization help
-- 💻 Coding assistance
-- 😄 Jokes & fun facts
+| Capability | Status | Current behavior |
+|---|---|---|
+| Language switching and responsive interface | `implemented` | Runs locally in the browser |
+| Chat, greetings, jokes, and facts | `demo` | Uses intent matching, fixed responses, and a simulated delay |
+| Translation | `unavailable` | Clearly reports that no translation service is connected |
+| Text summarization | `unavailable` | Clearly reports that no model is connected |
+| Coding assistance | `unavailable` | Clearly reports that no code-analysis service is connected |
+| Image description | `unavailable` | No image upload or analysis is implemented |
+| Speech to text | `unavailable` | Recording and transcription are not implemented |
 
-> **Note**: To connect to a real AI API (OpenAI, Anthropic, etc.), modify `js/ai.js`
+Connecting a real model requires a trusted backend. **Never place provider API keys in browser
+JavaScript or HTML.** The current repository intentionally contains no model credentials.
 
 ## 🎨 Customization
 

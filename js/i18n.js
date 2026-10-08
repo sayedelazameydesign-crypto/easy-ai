@@ -15,42 +15,45 @@ const translations = {
         "nav.about": "عن المشروع",
         
         // Hero
-        "hero.badge": "✨ ذكاء اصطناعي من الجيل الجديد",
-        "hero.title1": "ذكاء اصطناعي",
-        "hero.title2": "سهل وقوي",
-        "hero.description": "منصة ذكاء اصطناعي حديثة rendent l'IA accessible à tous. Discutez, créez et découvrez la puissance de l'intelligence artificielle.",
+        "hero.badge": "✨ تجربة محادثة توضيحية",
+        "hero.title1": "مساعد تجريبي",
+        "hero.title2": "واضح وسهل",
+        "hero.description": "واجهة ثنائية اللغة تستعرض تجربة محادثة بردود ثابتة. لا يوجد نموذج ذكاء اصطناعي أو مزود خارجي متصل حاليًا.",
         "hero.cta1": "ابدأ المحادثة",
         "hero.cta2": "استكشف الأدوات",
         
         // Stats
-        "stats.users": "مستخدم",
-        "stats.chats": "محادثة",
-        "stats.satisfaction": "رضا",
+        "stats.users": "لا توجد بيانات استخدام",
+        "stats.chats": "ردود ثابتة",
+        "stats.satisfaction": "تشغيل محلي",
         
         // Features
         "features.badge": "🛠️ الأدوات",
-        "features.title": "أدوات ذكاء اصطناعي قوية",
-        "features.description": "اكتشف مجموعة متكاملة من الأدوات المدعومة بالذكاء الاصطناعي",
-        "features.chat.title": "محادثة ذكية",
-        "features.chat.desc": "تحدث مع الذكاء الاصطناعي بلغتك المفضلة",
-        "features.translate.title": "ترجمة فورية",
-        "features.translate.desc": "ترجم نصوصك بين العربية والإنجليزية",
+        "features.title": "حالة ميزات العرض",
+        "features.description": "توضح كل بطاقة ما يعمل كتجربة وما يحتاج إلى خدمة غير متصلة.",
+        "status.demo": "تجريبي",
+        "status.unavailable": "غير متاح",
+        "feature.unavailable.notice": "هذه الميزة غير متاحة حاليًا لأنها تحتاج إلى خدمة خارجية غير متصلة.",
+        "features.chat.title": "محادثة تجريبية",
+        "features.chat.desc": "جرّب ردودًا ثابتة ومحاكاة بسيطة بالعربية أو الإنجليزية.",
+        "features.translate.title": "الترجمة",
+        "features.translate.desc": "غير متاحة؛ لم تُربط خدمة ترجمة فعلية بعد.",
         "features.summarize.title": "تلخيص النصوص",
-        "features.summarize.desc": "احصل على ملخصات سريعة لأي نص طويل",
+        "features.summarize.desc": "غير متاح؛ لا يوجد نموذج متصل لتلخيص النصوص.",
         "features.code.title": "مساعد برمجي",
-        "features.code.desc": "احصل على مساعدة في كتابة وتصحيح الكود",
+        "features.code.desc": "غير متاح؛ لا توجد خدمة متصلة لتحليل الشيفرة.",
         "features.image.title": "وصف الصور",
-        "features.image.desc": "أنشئ أوصافاً إبداعية للصور",
+        "features.image.desc": "غير متاح؛ الواجهة لا تستقبل الصور أو تحللها.",
         "features.voice.title": "تحويل صوت لنص",
-        "features.voice.desc": "حول audio إلى نص مكتوب",
+        "features.voice.desc": "غير متاح؛ لا يوجد تسجيل أو تحويل للصوت.",
         
         // Chat
         "chat.badge": "🤖 الدردشة",
         "chat.title": "تحدث مع Easy AI",
-        "chat.description": "اسأل أي سؤال واحصل على إجابة فورية",
-        "chat.online": "متصل الآن",
+        "chat.description": "جرّب محادثة توضيحية تعتمد على ردود معدّة مسبقًا.",
+        "chat.online": "وضع تجريبي",
         "chat.placeholder": "اكتب رسالتك هنا...",
-        "chat.welcome": "مرحباً! أنا Easy AI 👋 أنا مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟",
+        "chat.welcome": "مرحبًا! هذه محادثة تجريبية بردود ثابتة، وليست نموذج ذكاء اصطناعي متصلًا. اختر اقتراحًا لتجربة الواجهة.",
         "chat.typing": "يكتب...",
         "chat.cleared": "تم مسح المحادثة",
         
@@ -58,13 +61,13 @@ const translations = {
         "suggestions.hello": "👋 قل مرحباً",
         "suggestions.help": "🆘 ما الذي يمكنك فعله؟",
         "suggestions.joke": "😄 أخبرني نكتة",
-        "suggestions.fact": "🧠 autonomy un fait intéressant",
+        "suggestions.fact": "🧠 أخبرني حقيقة ممتعة",
         
         // About
         "about.badge": "ℹ️ عن المشروع",
         "about.title": "ما هو Easy AI؟",
-        "about.description1": "Easy AI هو مشروع مفتوح المصدر يهدف إلى جعل الذكاء الاصطناعي في متناول الجميع. نوفر واجهة سهلة الاستخدام تدعم اللغة العربية والإنجليزية.",
-        "about.description2": "سواء كنت مطوراً أو طالباً أو فضولياً، يوفر لك Easy AI أدوات ذكاء اصطناعي قوية دون أي تعقيدات.",
+        "about.description1": "Easy AI مشروع مفتوح المصدر يعرض واجهة محادثة ثنائية اللغة، مع قناة مستقلة وآمنة لمزامنة البيانات المنقّحة.",
+        "about.description2": "المحادثة الحالية محاكاة توضيحية، أما الترجمة والتلخيص والبرمجة والصور والصوت فتحتاج إلى خدمات غير متصلة بعد.",
         "about.feature1": "مجاني ومفتوح المصدر",
         "about.feature2": "يدعم العربية والإنجليزية",
         "about.feature3": "واجهة سهلة الاستخدام",
@@ -80,15 +83,15 @@ const translations = {
         
         // AI Responses
         "ai.greeting": "مرحباً! 👋 أنا Easy AI، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟",
-        "ai.help": "يمكنني مساعدتك في: 💬 الإجابة على أسئلتك، 🌐 الترجمة بين العربية والإنجليزية، 📝 تلخيص النصوص، 💻 كتابة الكود، 🎨 وصف الصور، 😄 إخبارك بنكتة!",
-        "ai.joke": "💡 لماذا went الع disagree الصdik? لأنه Aron stubborn! 😄",
-        "ai.joke2": "😄 ما الفرق بين المبرمج وال wizard؟Wizard يستخدم السحر، والمبرمج يصنع السحر! ✨",
-        "ai.fact": "🧠 هل تعلم أن أول كمبيوتر elektroner般 كان يزن أكثر من 27 طناً؟ وذلك عام 1946!",
-        "ai.fact2": "🚀 هل تعلم أن الذكاء الاصطناعي يمكنه الآن/generated muzika, art, وكتابةPoetry؟",
-        "ai.default": "شكراً على سؤالك! 🤔 أنا نموذج تجريبي، لكن يمكنني مساعدتك في: المحادثة، الترجمة، التلخيص، والبرمجة. جرب أن تسألني شيئاً محدداً!",
+        "ai.help": "هذه تجربة توضيحية بردود ثابتة: يمكنني عرض التحيات والنكات والحقائق وبعض الردود العامة. الترجمة والتلخيص والبرمجة والصور والصوت غير متاحة فعليًا.",
+        "ai.joke": "💡 لماذا ذهب الحاسوب إلى الطبيب؟ لأنه أُصيب بفيروس! 😄",
+        "ai.joke2": "😄 ما الفرق بين المبرمج والساحر؟ الساحر يستخدم السحر، والمبرمج يصنعه! ✨",
+        "ai.fact": "🧠 هل تعلم أن أول حاسوب إلكتروني عام كان يزن أكثر من 27 طنًا؟ كان ذلك عام 1946!",
+        "ai.fact2": "🚀 هل تعلم أن الذكاء الاصطناعي يستطيع الآن إنشاء الموسيقى والفنون وكتابة الشعر؟",
+        "ai.default": "شكرًا على رسالتك! هذه محاكاة بردود ثابتة وليست نموذجًا متصلًا، لذلك قد لا أستطيع الإجابة عن طلبك فعليًا.",
         "ai.thanks": "على الرحب والسعة! 😊 هل هناك شيء آخر تريد معرفته؟",
-        "ai.bye": "إلى اللقاء! 👋 buona giornata!",
-        "ai.love": "شكراً على kindness! ❤️ أنا هنا دائماً لمساعدتك. 💪",
+        "ai.bye": "إلى اللقاء! 👋 أتمنى لك يومًا سعيدًا!",
+        "ai.love": "شكرًا على لطفك! ❤️ أنا هنا دائمًا لمساعدتك. 💪",
         
         // Time
         "time.now": "الآن",
@@ -108,42 +111,45 @@ const translations = {
         "nav.about": "About",
         
         // Hero
-        "hero.badge": "✨ Next-Gen Artificial Intelligence",
-        "hero.title1": "Artificial Intelligence",
-        "hero.title2": "Easy & Powerful",
-        "hero.description": "A modern AI platform that makes artificial intelligence accessible to everyone. Chat, create, and discover the power of AI.",
+        "hero.badge": "✨ Demo Conversation Experience",
+        "hero.title1": "Demo Assistant",
+        "hero.title2": "Clear & Simple",
+        "hero.description": "A bilingual interface demonstrating preset chat responses. No AI model or external provider is currently connected.",
         "hero.cta1": "Start Chatting",
         "hero.cta2": "Explore Tools",
         
         // Stats
-        "stats.users": "Users",
-        "stats.chats": "Chats",
-        "stats.satisfaction": "Satisfaction",
+        "stats.users": "No usage telemetry",
+        "stats.chats": "Preset responses",
+        "stats.satisfaction": "Runs locally",
         
         // Features
         "features.badge": "🛠️ Tools",
-        "features.title": "Powerful AI Tools",
-        "features.description": "Discover a complete suite of AI-powered tools",
-        "features.chat.title": "Smart Chat",
-        "features.chat.desc": "Chat with AI in your preferred language",
-        "features.translate.title": "Instant Translation",
-        "features.translate.desc": "Translate your texts between Arabic and English",
+        "features.title": "Demo Feature Status",
+        "features.description": "Each card clearly shows what is a demo and what requires an unconnected service.",
+        "status.demo": "Demo",
+        "status.unavailable": "Unavailable",
+        "feature.unavailable.notice": "This feature is currently unavailable because it requires an external service that is not connected.",
+        "features.chat.title": "Demo Chat",
+        "features.chat.desc": "Try preset responses and simple simulation in Arabic or English.",
+        "features.translate.title": "Translation",
+        "features.translate.desc": "Unavailable; no real translation service is connected.",
         "features.summarize.title": "Text Summarizer",
-        "features.summarize.desc": "Get quick summaries of any long text",
+        "features.summarize.desc": "Unavailable; no model is connected to summarize text.",
         "features.code.title": "Code Assistant",
-        "features.code.desc": "Get help writing and debugging code",
+        "features.code.desc": "Unavailable; no service is connected to analyze code.",
         "features.image.title": "Image Describer",
-        "features.image.desc": "Create creative descriptions for images",
+        "features.image.desc": "Unavailable; the interface cannot upload or analyze images.",
         "features.voice.title": "Speech to Text",
-        "features.voice.desc": "Convert audio to written text",
+        "features.voice.desc": "Unavailable; audio recording and transcription are not implemented.",
         
         // Chat
         "chat.badge": "🤖 Chat",
         "chat.title": "Chat with Easy AI",
-        "chat.description": "Ask any question and get an instant answer",
-        "chat.online": "Online now",
+        "chat.description": "Try a demonstration chat powered by preset responses.",
+        "chat.online": "Demo mode",
         "chat.placeholder": "Type your message here...",
-        "chat.welcome": "Hello! I'm Easy AI 👋 Your AI assistant. How can I help you today?",
+        "chat.welcome": "Hello! This is a preset-response demo, not a connected AI model. Choose a suggestion to try the interface.",
         "chat.typing": "Typing...",
         "chat.cleared": "Chat cleared",
         
@@ -156,8 +162,8 @@ const translations = {
         // About
         "about.badge": "ℹ️ About",
         "about.title": "What is Easy AI?",
-        "about.description1": "Easy AI is an open-source project aimed at making artificial intelligence accessible to everyone. We provide an easy-to-use interface that supports both Arabic and English.",
-        "about.description2": "Whether you're a developer, student, or just curious, Easy AI provides powerful AI tools without any complexity.",
+        "about.description1": "Easy AI is an open-source bilingual chat interface with a separate secure channel for publishing sanitized synchronized data.",
+        "about.description2": "The current chat is a demonstration. Translation, summarization, coding, image, and voice tools require services that are not connected yet.",
         "about.feature1": "Free & Open Source",
         "about.feature2": "Arabic & English Support",
         "about.feature3": "Easy-to-Use Interface",
@@ -173,12 +179,12 @@ const translations = {
         
         // AI Responses
         "ai.greeting": "Hello! 👋 I'm Easy AI, your AI assistant. How can I help you today?",
-        "ai.help": "I can help you with: 💬 Answering questions, 🌐 Translation between Arabic & English, 📝 Text summarization, 💻 Coding help, 🎨 Image descriptions, 😄 Telling jokes!",
+        "ai.help": "This is a preset-response demo: I can show greetings, jokes, facts, and a few general responses. Translation, summarization, coding, image, and voice tools are not actually available.",
         "ai.joke": "💡 Why did the computer go to the doctor? Because it had a virus! 😄",
         "ai.joke2": "😄 What's the difference between a programmer and a wizard? A wizard uses magic, a programmer creates magic! ✨",
         "ai.fact": "🧠 Did you know the first electronic computer weighed over 27 tons? That was in 1946!",
         "ai.fact2": "🚀 Did you know AI can now generate music, art, and even poetry?",
-        "ai.default": "Thanks for your question! 🤔 I'm a demo model, but I can help you with: chatting, translation, summarization, and coding. Try asking me something specific!",
+        "ai.default": "Thanks for your message! This is a preset-response simulation, not a connected model, so I may not be able to fulfill your request.",
         "ai.thanks": "You're welcome! 😊 Is there anything else you'd like to know?",
         "ai.bye": "Goodbye! 👋 Have a great day!",
         "ai.love": "Thank you for your kindness! ❤️ I'm always here to help. 💪",
@@ -192,7 +198,7 @@ const translations = {
 };
 
 // Current language state
-let currentLang = localStorage.getItem('easy-ai-lang') || 'ar';
+let currentLang = (typeof localStorage !== 'undefined' && localStorage.getItem('easy-ai-lang')) || 'ar';
 
 /**
  * Get translation for a key
@@ -205,8 +211,10 @@ function t(key) {
  * Set language
  */
 function setLanguage(lang) {
+    if (!translations[lang]) return;
     currentLang = lang;
-    localStorage.setItem('easy-ai-lang', lang);
+    if (typeof localStorage !== 'undefined') localStorage.setItem('easy-ai-lang', lang);
+    if (typeof document === 'undefined') return;
     
     // Update HTML attributes
     document.documentElement.lang = lang;
@@ -274,4 +282,9 @@ if (typeof window !== 'undefined') {
         isRTL,
         translations
     };
+}
+
+// CommonJS export keeps translations testable without a browser or build step.
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { translations, t, setLanguage, getLanguage, isRTL };
 }
