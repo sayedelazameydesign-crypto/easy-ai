@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy AI - ذكاء اصطناعي سهل | Your AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🤖</span>
+                <span class="logo-text" data-i18n="brand">Easy AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="#home" class="nav-link active" data-i18n="nav.home">الرئيسية</a>
+                <a href="#chat" class="nav-link" data-i18n="nav.chat">المحادثة</a>
+                <a href="#tools" class="nav-link" data-i18n="nav.tools">الأدوات</a>
+                <a href="#about" class="nav-link" data-i18n="nav.about">عن المشروع</a>
+            </div>
+            <div class="nav-actions">
+                <button class="lang-toggle" id="langToggle" title="Switch Language">
+                    <span class="lang-icon">🌐</span>
+                    <span id="langLabel">EN</span>
+                </button>
+                <button class="menu-toggle" id="menuToggle">☰</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                <span data-i18n="hero.badge">✨ ذكاء اصطناعي من الجيل الجديد</span>
+            </div>
+            <h1 class="hero-title">
+                <span data-i18n="hero.title1">ذكاء اصطناعي</span>
+                <span class="gradient-text" data-i18n="hero.title2">سهل وقوي</span>
+            </h1>
+            <p class="hero-description" data-i18n="hero.description">
+               助力 AIaken - منصة ذكاء اصطناعي arabe moderne qui rend l'IA accessible à tous. Discutez, créez et découvrez la puissance de l'intelligence artificielle.
+            </p>
+            <div class="hero-buttons">
+                <a href="#chat" class="btn btn-primary">
+                    <span data-i18n="hero.cta1">ابدأ المحادثة</span>
+                    <span class="btn-icon">→</span>
+                </a>
+                <a href="#tools" class="btn btn-secondary">
+                    <span data-i18n="hero.cta2">استكشف الأدوات</span>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">10K+</span>
+                    <span class="stat-label" data-i18n="stats.users">مستخدم</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">50K+</span>
+                    <span class="stat-label" data-i18n="stats.chats">محادثة</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">99%</span>
+                    <span class="stat-label" data-i18n="stats.satisfaction">رضا</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="ai-orb">
+                <div class="orb-core"></div>
+                <div class="orb-ring ring-1"></div>
+                <div class="orb-ring ring-2"></div>
+                <div class="orb-ring ring-3"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="tools" class="features">
+        <div class="section-header">
+            <span class="section-badge" data-i18n="features.badge">🛠️ الأدوات</span>
+            <h2 class="section-title" data-i18n="features.title">أدوات ذكاء اصطناعي قوية</h2>
+            <p class="section-description" data-i18n="features.description">اكتشف مجموعة متكاملة من الأدوات المدعومة بالذكاء الاصطناعي</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card" data-tool="chat">
+                <div class="feature-icon">💬</div>
+                <h3 data-i18n="features.chat.title">محادثة ذكية</h3>
+                <p data-i18n="features.chat.desc">تحدث مع الذكاء الاصطناعي بلغتك المفضلة</p>
+            </div>
+            <div class="feature-card" data-tool="translate">
+                <div class="feature-icon">🌐</div>
+                <h3 data-i18n="features.translate.title">ترجمة فورية</h3>
+                <p data-i18n="features.translate.desc">ترجم نصوصك بين العربية والإنجليزية</p>
+            </div>
+            <div class="feature-card" data-tool="summarize">
+                <div class="feature-icon">📝</div>
+                <h3 data-i18n="features.summarize.title">تلخيص النصوص</h3>
+                <p data-i18n="features.summarize.desc">احصل على ملخصات سريعة لأي نص طويل</p>
+            </div>
+            <div class="feature-card" data-tool="code">
+                <div class="feature-icon">💻</div>
+                <h3 data-i18n="features.code.title">مساعد برمجي</h3>
+                <p data-i18n="features.code.desc">احصل على مساعدة في كتابة وتصحيح الكود</p>
+            </div>
+            <div class="feature-card" data-tool="image">
+                <div class="feature-icon">🎨</div>
+                <h3 data-i18n="features.image.title">وصف الصور</h3>
+                <p data-i18n="features.image.desc">أنشئ أوصافاً إبداعية للصور</p>
+            </div>
+            <div class="feature-card" data-tool="voice">
+                <div class="feature-icon">🎤</div>
+                <h3 data-i18n="features.voice.title">تحويل صوت لنص</h3>
+                <p data-i18n="features.voice.desc">حول смертельlyое audio إلى نص مكتوب</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Chat Section -->
+    <section id="chat" class="chat-section">
+        <div class="section-header">
+            <span class="section-badge" data-i18n="chat.badge">🤖 الدردشة</span>
+            <h2 class="section-title" data-i18n="chat.title">تحدث مع Easy AI</h2>
+            <p class="section-description" data-i18n="chat.description">اسأل أي سؤال واحصل على إجابة فورية</p>
+        </div>
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="chat-avatar">🤖</div>
+                <div class="chat-info">
+                    <span class="chat-name">Easy AI</span>
+                    <span class="chat-status">
+                        <span class="status-dot"></span>
+                        <span data-i18n="chat.online">متصل الآن</span>
+                    </span>
+                </div>
+                <div class="chat-tools">
+                    <button class="tool-btn" id="clearChat" title="Clear">🗑️</button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p data-i18n="chat.welcome">مرحباً! أنا Easy AI 👋 أنا مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟</p>
+                        <span class="message-time">الآن</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-suggestions" id="chatSuggestions">
+                <button class="suggestion-btn" data-suggestion="hello" data-i18n="suggestions.hello">👋 قل مرحباً</button>
+                <button class="suggestion-btn" data-suggestion="help" data-i18n="suggestions.help">🆘 ما الذي يمكنك فعله؟</button>
+                <button class="suggestion-btn" data-suggestion="joke" data-i18n="suggestions.joke">😄 أخبرني نكتة</button>
+                <button class="suggestion-btn" data-suggestion="fact" data-i18n="suggestions.fact">🧠 autonomie un fait intéressant</button>
+            </div>
+            <div class="chat-input-container">
+                <button class="input-tool-btn" id="attachBtn" title="Attach">📎</button>
+                <textarea
+                    id="chatInput"
+                    class="chat-input"
+                    placeholder="اكتب رسالتك هنا..."
+                    data-i18n-placeholder="chat.placeholder"
+                    rows="1"
+                ></textarea>
+                <button class="input-tool-btn" id="voiceBtn" title="Voice">🎤</button>
+                <button class="send-btn" id="sendBtn">
+                    <span class="send-icon">➤</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="about-container">
+            <div class="about-content">
+                <span class="section-badge" data-i18n="about.badge">ℹ️ عن المشروع</span>
+                <h2 class="section-title" data-i18n="about.title">ما هو Easy AI؟</h2>
+                <p data-i18n="about.description1">
+                    Easy AI هو مشروع مفتوح المصدر يهدف إلى جعل الذكاء الاصطناعي في متناول الجميع. 
+                    نوفر واجهة سهلة الاستخدام تدعم اللغة العربية والإنجليزية.
+                </p>
+                <p data-i18n="about.description2">
+                    Whether you're a developer, student, or curious mind, Easy AI provides powerful AI tools 
+                    without the complexity.
+                </p>
+                <div class="about-features">
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span data-i18n="about.feature1">مجاني ومفتوح المصدر</span>
+                    </div>
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span data-i18n="about.feature2">يدعم العربية والإنجليزية</span>
+                    </div>
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span data-i18n="about.feature3">واجهة سهلة الاستخدام</span>
+                    </div>
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span data-i18n="about.feature4">أدوات متعددة</span>
+                    </div>
+                </div>
+                <a href="https://github.com/sayedelazameydesign-crypto/easy-ai" target="_blank" class="btn btn-primary">
+                    <span data-i18n="about.github">⭐ Star on GitHub</span>
+                </a>
+            </div>
+            <div class="about-visual">
+                <div class="code-window">
+                    <div class="code-header">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                        <span class="code-title">easy-ai.js</span>
+                    </div>
+                    <pre class="code-content"><code><span class="keyword">const</span> <span class="variable">easyAI</span> = {
+  <span class="property">name</span>: <span class="string">"Easy AI"</span>,
+  <span class="property">version</span>: <span class="string">"1.0.0"</span>,
+  <span class="property">languages</span>: [<span class="string">"ar"</span>, <span class="string">"en"</span>],
+  <span class="property">features</span>: [<span class="string">"chat"</span>, <span class="string">"translate"</span>, <span class="string">"code"</span>],
+  <span class="method">start</span>() {
+    <span class="keyword">return</span> <span class="string">"🚀 AI is ready!"</span>;
+  }
+};</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo">
+                    <span class="logo-icon">🤖</span>
+                    <span class="logo-text">Easy AI</span>
+                </div>
+                <p data-i18n="footer.tagline">ذكاء اصطناعي سهل للجميع</p>
+                <div class="social-links">
+                    <a href="https://github.com/sayedelazameydesign-crypto/easy-ai" target="_blank" class="social-link">⭐</a>
+                    <a href="#" class="social-link">🐦</a>
+                    <a href="#" class="social-link">💼</a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4 data-i18n="footer.links">روابط</h4>
+                <a href="#home" data-i18n="nav.home">الرئيسية</a>
+                <a href="#chat" data-i18n="nav.chat">المحادثة</a>
+                <a href="#tools" data-i18n="nav.tools">الأدوات</a>
+                <a href="#about" data-i18n="nav.about">عن المشروع</a>
+            </div>
+            <div class="footer-links">
+                <h4 data-i18n="footer.resources">الموارد</h4>
+                <a href="#">GitHub</a>
+                <a href="#">Documentation</a>
+                <a href="#">API</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Easy AI. <span data-i18n="footer.rights">جميع الحقوق محفوظة.</span></p>
+            <p data-i18n="footer.made">صنع بـ ❤️ باستخدام الذكاء الاصطناعي</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/i18n.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
