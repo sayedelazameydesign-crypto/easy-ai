@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Secrets & raw payloads — NEVER committed
+.env
+.env.*
+*.secret
+*.pem
+raw/
+seeds/
+vault/
+*-raw.json
+
+# Generated at deploy time (scripts/build_pages.py assembles _pages/)
+site/data/
+_pages/
+
+# OS
+.DS_Store
+Thumbs.db
