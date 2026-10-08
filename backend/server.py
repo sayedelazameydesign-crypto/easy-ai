@@ -20,7 +20,12 @@ def make_handler(app: ChatApplication):
 
         def _origin_allowed(self) -> bool:
             origin = self.headers.get("Origin")
-            return not origin or origin in app.config.allowed_origins
+            if app.config.allowed_origins:
+                # A configured browser deployment must send an exact allowlisted
+                # Origin. Missing Origin is not treated as an authentication bypass.
+                return origin in app.config.allowed_origins
+            # Origin-less access is reserved for local development/CLI use.
+            return origin is None
 
         def _json(self, code: int, payload: dict) -> None:
             body = json.dumps(payload).encode()
@@ -31,6 +36,7 @@ def make_handler(app: ChatApplication):
             if origin and origin in app.config.allowed_origins:
                 self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Vary", "Origin")
+            self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(body)
 
@@ -41,10 +47,27 @@ def make_handler(app: ChatApplication):
                 return self._json(*app.status())
             return super().do_GET()
 
+        def do_OPTIONS(self):
+            if self.path != "/api/chat" or not self._origin_allowed():
+                return self._json(403 if self.path == "/api/chat" else 404,
+                                  {"status": "invalid_request"})
+            self.send_response(204)
+            origin = self.headers.get("Origin")
+            if origin:
+                self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, Accept")
+            self.send_header("Access-Control-Max-Age", "600")
+            self.end_headers()
+
         def do_POST(self):
             if self.path != "/api/chat" or not self._origin_allowed():
                 return self._json(403 if self.path == "/api/chat" else 404,
                                   {"status": "invalid_request"})
+            content_type = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+            if content_type != "application/json":
+                return self._json(415, {"status": "invalid_request"})
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > MAX_BODY_BYTES:

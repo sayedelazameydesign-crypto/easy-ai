@@ -84,7 +84,30 @@ All values are server-side environment variables:
 | `AI_RATE_LIMIT_REQUESTS` | Per-process/IP requests per minute, default 20 |
 
 No provider URL can be supplied by a browser request. The adapter endpoint is fixed
-in server code to prevent SSRF or arbitrary proxying.
+in server code to prevent SSRF or arbitrary proxying. The adapter sends a bounded
+`max_completion_tokens` value as well as enforcing the response character limit.
+
+## Frontend/backend origins
+
+The browser uses same-origin `/api` by default. If a future deployment puts the
+backend on another origin, set the reviewed public HTTPS origin in the static page:
+
+```html
+<meta name="easy-ai-api-base" content="https://api.example.com">
+```
+
+The client rejects a cross-origin HTTP URL. Configure `AI_ALLOWED_ORIGINS` on the
+backend with the exact HTTPS frontend origin (no wildcard). A configured allowlist
+requires an `Origin` header and supports a restricted CORS preflight. This is only
+browser access policy: it is not authentication. A public deployment still needs
+an authenticated reverse proxy/API gateway, distributed rate limiting, quotas,
+and abuse monitoring. TLS must terminate at a trusted proxy or managed host, and
+`AI_API_KEY` must be supplied from that host's secret manager rather than a file in
+the web root.
+
+The development server deliberately uses the socket peer address and ignores
+`X-Forwarded-For`. A future trusted proxy deployment must define and test an
+explicit trusted-proxy policy before using forwarded addresses for rate limiting.
 
 ## Local operation
 
@@ -109,8 +132,9 @@ output.
 - 8,000 output characters.
 - 64 KiB HTTP body cap.
 - Fixed provider endpoint and network timeout.
-- Exact-origin CORS allowlist; CORS is not treated as authentication.
-- In-memory, per-process/IP sliding-window rate limit.
+- Exact-origin CORS allowlist; when configured, missing and mismatched origins are rejected.
+- CORS is not treated as authentication or protection for non-browser clients.
+- In-memory, per-process/socket-peer-IP sliding-window rate limit; forwarded IP headers are ignored.
 - No body or credential logging by default.
 
 The local limiter resets on restart and does not coordinate multiple instances.

@@ -8,9 +8,22 @@ class ChatApiError extends Error {
 }
 
 class ChatApiClient {
+    constructor(baseUrl = '') {
+        this.baseUrl = ChatApiClient.normalizeBaseUrl(baseUrl);
+    }
+
+    static normalizeBaseUrl(value) {
+        if (!value) return '';
+        const url = new URL(value, window.location.href);
+        if (url.origin !== window.location.origin && url.protocol !== 'https:') {
+            throw new Error('Cross-origin AI API must use HTTPS');
+        }
+        return url.href.replace(/\/$/, '');
+    }
+
     async status() {
         try {
-            const response = await fetch('/api/status', { headers: { Accept: 'application/json' } });
+            const response = await fetch(`${this.baseUrl}/api/status`, { headers: { Accept: 'application/json' } });
             if (!response.ok) return { status: 'not_configured', chat: 'unavailable' };
             return response.json();
         } catch (_) {
@@ -21,7 +34,7 @@ class ChatApiClient {
     async complete(messages) {
         let response;
         try {
-            response = await fetch('/api/chat', {
+            response = await fetch(`${this.baseUrl}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
                 body: JSON.stringify({ messages })

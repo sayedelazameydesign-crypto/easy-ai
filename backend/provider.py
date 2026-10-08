@@ -1,8 +1,8 @@
 """Model provider boundary and one fixed-host OpenAI adapter."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Protocol
+from dataclasses import dataclass, field
+from typing import ClassVar, Protocol
 
 import requests
 
@@ -21,18 +21,31 @@ class ChatProvider(Protocol):
 
 @dataclass
 class OpenAIProvider:
-    api_key: str
+    api_key: str = field(repr=False)
     model: str
     timeout_seconds: float = 20.0
-    endpoint: str = "https://api.openai.com/v1/chat/completions"
+    session: requests.Session | None = field(default=None, repr=False)
+
+    ENDPOINT: ClassVar[str] = "https://api.openai.com/v1/chat/completions"
+    MAX_COMPLETION_TOKENS: ClassVar[int] = 4096
 
     def complete(self, messages: list[dict[str, str]], *, max_output_chars: int) -> str:
+        # Character and token counts are not equivalent. This conservative token
+        # budget limits provider-side generation; the character slice below is a
+        # separate response-contract guarantee.
+        max_completion_tokens = max(1, min(
+            self.MAX_COMPLETION_TOKENS, (max_output_chars + 1) // 2))
+        post = self.session.post if self.session is not None else requests.post
         try:
-            response = requests.post(
-                self.endpoint,
+            response = post(
+                self.ENDPOINT,
                 headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
-                json={"model": self.model, "messages": messages},
-                timeout=self.timeout_seconds,
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "max_completion_tokens": max_completion_tokens,
+                },
+                timeout=(self.timeout_seconds, self.timeout_seconds),
             )
         except requests.Timeout as exc:
             raise ProviderTimeout("provider request timed out") from exc

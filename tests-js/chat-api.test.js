@@ -43,7 +43,7 @@ test('missing backend remains in explicitly labeled demo mode', async () => {
   assert.notEqual(response, 'provider reply');
 });
 
-test('API client maps non-success responses to explicit errors', async () => {
+test('API client maps non-success and invalid responses to explicit errors', async () => {
   global.fetch = async () => ({
     ok: false,
     json: async () => ({ status: 'rate_limited' })
@@ -51,4 +51,24 @@ test('API client maps non-success responses to explicit errors', async () => {
   const client = new ChatApiClient();
   await assert.rejects(() => client.complete([{ role: 'user', content: 'x' }]),
     (error) => error instanceof ChatApiError && error.status === 'rate_limited');
+
+  global.fetch = async () => ({ ok: true, json: async () => { throw new Error('invalid JSON'); } });
+  await assert.rejects(() => client.complete([{ role: 'user', content: 'x' }]),
+    (error) => error instanceof ChatApiError && error.status === 'provider_error');
+});
+
+test('cross-origin API configuration requires HTTPS', () => {
+  global.window = { location: { href: 'https://app.example/', origin: 'https://app.example' } };
+  assert.equal(new ChatApiClient('').baseUrl, '');
+  assert.equal(new ChatApiClient('https://api.example/').baseUrl, 'https://api.example');
+  assert.throws(() => new ChatApiClient('http://api.example'), /must use HTTPS/);
+});
+
+test('chat UI contains a duplicate-request guard', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8');
+  assert.match(source, /if \(!message \|\| requestInFlight\) return/);
+  assert.match(source, /sendBtn\.disabled = true/);
+  assert.match(source, /\.finally\(\(\) =>/);
 });

@@ -31,8 +31,10 @@ class EasyAI {
     constructor(apiClient = null) {
         this.conversationHistory = [];
         this.isTyping = false;
+        const configuredApiBase = typeof document !== 'undefined'
+            ? document.querySelector('meta[name="easy-ai-api-base"]')?.content || '' : '';
         this.apiClient = apiClient || (typeof window !== 'undefined' && window.ChatApiClient
-            ? new window.ChatApiClient() : null);
+            ? new window.ChatApiClient(configuredApiBase) : null);
         this.mode = 'demo';
         
         // Response templates

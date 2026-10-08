@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
 class ChatConfig:
     provider: str = ""
     model: str = ""
-    api_key: str = ""
+    api_key: str = field(default="", repr=False)
     allowed_origins: tuple[str, ...] = ()
     max_messages: int = 20
     max_message_chars: int = 4000

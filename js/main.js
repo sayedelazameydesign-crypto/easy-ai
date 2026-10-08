@@ -117,6 +117,7 @@ function initChat() {
     const chatMessages = document.getElementById('chatMessages');
     const clearBtn = document.getElementById('clearChat');
     const suggestions = document.querySelectorAll('.suggestion-btn');
+    let requestInFlight = false;
     
     if (!chatInput || !sendBtn) return;
     
@@ -154,7 +155,9 @@ function initChat() {
     
     function sendMessage() {
         const message = chatInput.value.trim();
-        if (!message) return;
+        if (!message || requestInFlight) return;
+        requestInFlight = true;
+        sendBtn.disabled = true;
         
         // Add user message
         addMessage(message, 'user');
@@ -182,7 +185,11 @@ function initChat() {
                 const key = ['rate_limited', 'provider_timeout', 'not_configured'].includes(status)
                     ? `chat.error.${status}` : 'chat.error.provider_error';
                 addMessage(window.i18n.t(key), 'ai');
-                console.error('AI Error:', error);
+                console.error('AI request failed:', status || 'provider_error');
+            })
+            .finally(() => {
+                requestInFlight = false;
+                sendBtn.disabled = false;
             });
     }
     
