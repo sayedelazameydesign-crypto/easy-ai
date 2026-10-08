@@ -58,11 +58,13 @@ gh secret set SYNC_VAULT_KEY               # اختياري: openssl rand -hex 3
 
 ## 4) فعّل القناة
 
-1. ادمج فرع العمل في `main` — جدولة GitHub Actions تعمل من الفرع الافتراضي فقط.
-2. Pages تُفعَّل تلقائيًا من workflow (`enablement: true`)؛ للتفعيل اليدوي:
-   `Settings → Pages → Source: GitHub Actions`.
-3. أول تشغيل: `Actions → secure-sync → Run workflow` (أو انتظر الدقيقة 17
-   من كل ساعة).
+1. القناة مدموجة في `main` — الجدولة الساعية (الدقيقة 17) تعمل تلقائيًا.
+2. **Pages تتطلب نقرة يدوية واحدة** (GitHub لا يسمح للـworkflow بإنشاء الموقع
+   أول مرة): `Settings → Pages → Build and deployment → Source: GitHub Actions`.
+   حتى يتم ذلك يبقى التشغيل أخضر مع تحذير واضح، وتُلتزم البيانات المُنقّحة
+   في المستودع كالمعتاد — النشر العام هو وحده المؤجَّل.
+3. أول تشغيل بعد التفعيل: `Actions → secure-sync → Run workflow`
+   (أو انتظر الدقيقة 17 من كل ساعة).
 4. تحقق بصدق: اللوحة يجب أن تعرض «متزامن» **فقط** بعد أن يقول
    `data/manifest.json` ذلك؛ وقبل إضافة الأسرار ستعرض «غير مُهيّأ» مع أسماء
    النواقص — وهذا سلوك صحيح لا عطل.

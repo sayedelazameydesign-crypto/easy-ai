@@ -53,9 +53,9 @@ jobs:
       GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
       SYNC_VAULT_KEY: ${{ secrets.SYNC_VAULT_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -92,19 +92,29 @@ jobs:
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
 
-      - name: Assemble Pages artifact (chat at /, dashboard at /sync/)
-        run: python scripts/build_pages.py
-
       - name: Setup Pages
+        id: setup_pages
+        continue-on-error: true   # التفعيل الأول قد يتطلب نقرة يدوية في الإعدادات
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
+      - name: Pages notice (عند تعذّر الإعداد)
+        if: steps.setup_pages.outcome != 'success'
+        run: |
+          echo "::warning::GitHub Pages غير مفعّل بعد — القناة التزمت البيانات المُنقّحة بنجاح، لكن النشر العام متوقف حتى تفعيل Pages يدويًا مرة واحدة: Settings → Pages → Source: GitHub Actions. بعدها يُنشر تلقائيًا في التشغيل التالي."
+
+      - name: Assemble Pages artifact (chat at /, dashboard at /sync/)
+        if: steps.setup_pages.outcome == 'success'
+        run: python scripts/build_pages.py
+
       - name: Upload Pages artifact
+        if: steps.setup_pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _pages
 
       - name: Deploy to GitHub Pages
         id: deployment
+        if: steps.setup_pages.outcome == 'success'
         uses: actions/deploy-pages@v4
