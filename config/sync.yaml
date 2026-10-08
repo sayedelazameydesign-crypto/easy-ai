@@ -1,0 +1,21 @@
+# easy-ai — declarative sync configuration.
+# NO SECRETS HERE, EVER. Secret values live only in GitHub Secrets / env.
+# Names below match the owner integrations gateway one-for-one.
+
+sanitize: true          # run every record through the redactor
+encrypt_raw: true       # keep an AES-256-GCM raw snapshot in vault/ (gitignored)
+keep_runs: 100          # manifest history depth
+vault_retention: 24     # how many encrypted snapshots to keep locally
+
+drive:
+  # Default sync scope: the "1pro — بوابة التكاملات" folder.
+  # Override at runtime with the GOOGLE_DRIVE_FOLDER_ID env/secret.
+  folder_id: "1tb_cBlKZwKy98Ug-1Ie84ZOEnLoZ3lub"
+  folder_env: GOOGLE_DRIVE_FOLDER_ID
+  max_files: 200
+  max_file_bytes: 524288   # 512 KB — same cap as the gateway upload limit
+  content_mime_allowlist:
+    - text/markdown
+    - text/plain
+    - application/json
+  export_google_docs: true # Docs → text/plain, Sheets → text/csv

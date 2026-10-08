@@ -1,0 +1,43 @@
+{
+ "artifacts": {
+  "files.json": {
+   "bytes": 10085,
+   "sha256": "1b11e460f2eb963e8c602a6dfeed0e40fbb32afeb047412a7c088e80c734247b"
+  },
+  "latest.md": {
+   "bytes": 624,
+   "sha256": "676560b6b6d33c28a1b941b96297f1a313a9b6fd256643c40ba325dcc607b7d6"
+  }
+ },
+ "counts": {
+  "by_state": {
+   "ok": 2
+  },
+  "files": 2,
+  "redactions": 0,
+  "with_content": 2
+ },
+ "generated_at": "2026-10-08T23:05:12Z",
+ "generator": "easy-ai-sync/1.0.0",
+ "history": [],
+ "last_good_run": {
+  "files": null,
+  "generated_at": "",
+  "run_id": "seeded",
+  "status": "ok"
+ },
+ "missing": [],
+ "notes": [
+  "SYNC_VAULT_KEY not set — no encrypted raw snapshot was kept"
+ ],
+ "run_id": "20261008T230512Z",
+ "scan_findings": [],
+ "schema": 1,
+ "source": {
+  "credential_mode": "arena-connector",
+  "folder_id": "1tb_cBlKZwKy98Ug-1Ie84ZOEnLoZ3lub",
+  "query": "'1tb_cBlKZwKy98Ug-1Ie84ZOEnLoZ3lub' in parents and trashed = false",
+  "type": "google-drive"
+ },
+ "status": "ok"
+}

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>easy-ai · قناة المزامنة الآمنة</title>
+<meta name="description" content="لوحة عامة لبيانات Google Drive المتزامنة مع مستودع easy-ai — بعد التنقيح الكامل.">
+<style>
+:root{
+  --bg:#0b0f17; --panel:#121826; --panel2:#0e1420; --line:#1f2a3d;
+  --text:#e8eef7; --muted:#93a1b8; --accent:#4da3ff; --green:#3ddc84;
+  --amber:#ffc857; --red:#ff6b6b; --chip:#1c2740;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Tahoma,"Noto Kufi Arabic",sans-serif;
+  line-height:1.7}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 64px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  padding:18px 0;border-bottom:1px solid var(--line);margin-bottom:24px}
+h1{font-size:1.35rem;margin:0}
+h1 .dim{color:var(--muted);font-weight:400;font-size:.95rem}
+h2{font-size:1.05rem;margin:28px 0 12px;color:var(--muted);font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
+  font-weight:700;font-size:.9rem;border:1px solid var(--line);background:var(--chip)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.badge.ok .dot{background:var(--green)} .badge.warn .dot{background:var(--amber)}
+.badge.bad .dot{background:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card h3{margin:0 0 6px;font-size:.85rem;color:var(--muted);font-weight:600}
+.card .big{font-size:1.5rem;font-weight:800}
+.small{font-size:.82rem;color:var(--muted)}
+code,pre{font-family:ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;direction:ltr;
+  unicode-bidi:embed}
+code{background:var(--chip);padding:2px 6px;border-radius:6px;font-size:.8rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{background:var(--chip);border:1px solid var(--line);color:var(--muted);
+  padding:4px 10px;border-radius:999px;font-size:.78rem}
+.chip.miss{color:var(--amber);border-color:#4a3d1f}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+th{color:var(--muted);font-weight:600}
+.file{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:16px;margin-bottom:12px}
+.file .row{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
+  justify-content:space-between}
+.file .name{font-weight:700;font-size:1rem}
+.state{font-size:.75rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line)}
+.state.ok,.state.exported{color:var(--green);border-color:#1e4630}
+.state.folder,.state.skipped_mime,.state.too_large{color:var(--muted)}
+.state.error{color:var(--red);border-color:#4d2222}
+.desc{color:var(--muted);font-size:.87rem;margin:6px 0}
+pre.content{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:14px;overflow:auto;max-height:420px;font-size:.8rem;white-space:pre-wrap;
+  text-align:right;direction:rtl;unicode-bidi:plaintext;display:none;margin:10px 0 0}
+pre.content.open{display:block}
+button.toggle{background:var(--chip);color:var(--text);border:1px solid var(--line);
+  border-radius:8px;padding:5px 12px;font-size:.8rem;cursor:pointer;margin-top:8px}
+button.toggle:hover{border-color:var(--accent)}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:.82rem}
+.note{background:var(--panel2);border:1px solid var(--line);border-right:4px solid var(--accent);
+  border-radius:10px;padding:12px 16px;font-size:.87rem;color:var(--muted);margin:12px 0}
+.empty{color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>قناة المزامنة الآمنة <span class="dim">· easy-ai ← Google Drive</span></h1>
+    <span id="status-badge" class="badge"><span class="dot"></span><span>غير معروف</span></span>
+  </header>
+
+  <div class="note" id="honesty-note">
+    قاعدة العرض الصدقة: كل حالة المعروضة هنا تُقرأ من <code>data/manifest.json</code> كما كتبها
+    خادم المزامنة — وما لم يقله الخادم يُعرض «غير معروف»، لا «جاهز».
+  </div>
+
+  <div id="not-configured" class="card" style="display:none">
+    <h3>غير مُهيّأ — متغيرات ناقصة (أسماء فقط)</h3>
+    <div class="chips" id="missing-chips"></div>
+    <p class="small">أضف هذه القيم إلى <code>Settings → Secrets and variables → Actions</code>
+      في المستودع، وستلتقط أول مزامنة ساعةً تلقائية البيانات الحقيقية.
+      التفاصيل في <code>README.md</code>.</p>
+  </div>
+
+  <div id="blocked" class="card" style="display:none">
+    <h3>بوابة الفحص حجبت النشر</h3>
+    <p class="small">المُخرجات المنقّحة ما زالت تُشبه سرًّا، لذلك حُجر المحتوى ولم يُنشر.
+      النتائج (مسار/سطر/قاعدة فقط — بلا نص مطابق):</p>
+    <table><thead><tr><th>الملف</th><th>السطر</th><th>القاعدة</th></tr></thead>
+      <tbody id="blocked-rows"></tbody></table>
+  </div>
+
+  <h2>آخر تشغيل</h2>
+  <div class="grid">
+    <div class="card"><h3>الحالة</h3><div class="big" id="m-status">غير معروف</div>
+      <div class="small" id="m-generated">—</div></div>
+    <div class="card"><h3>الملفات</h3><div class="big" id="m-files">—</div>
+      <div class="small" id="m-with-content">—</div></div>
+    <div class="card"><h3>تعديلات التنقيح (redactions)</h3><div class="big" id="m-redactions">—</div>
+      <div class="small">ما حُذف تلقائيًا قبل النشر</div></div>
+    <div class="card"><h3>رقم التشغيل</h3><div class="big" style="font-size:1rem" id="m-run">—</div>
+      <div class="small" id="m-mode">—</div></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3>سلامة المحتوى (SHA-256 كما سجلها الخادم)</h3>
+    <div id="m-hashes" class="small">—</div>
+  </div>
+
+  <h2>الملفات المتزامنة</h2>
+  <div id="files"><p class="empty">جارٍ التحميل…</p></div>
+
+  <h2>سجل التشغيلات</h2>
+  <div class="card">
+    <table><thead><tr><th>run_id</th><th>الوقت (UTC)</th><th>الحالة</th><th>ملفات</th></tr></thead>
+      <tbody id="history-rows"><tr><td colspan="4" class="empty">—</td></tr></tbody></table>
+  </div>
+
+  <footer>
+    <p>
+      الواجهة العامة للبيانات (JSON):
+      <a href="data/files.json"><code>data/files.json</code></a> ·
+      <a href="data/manifest.json"><code>data/manifest.json</code></a> ·
+      <a href="data/latest.md"><code>data/latest.md</code></a>
+    </p>
+    <p>كل محتوى معروض هنا مرّ عبر المُحمِّر (redactor) ثم بوابة الفحص (scan gate) قبل النشر،
+      داخل GitHub Actions بأذونات دنيا. الأسرار لا تُخزَّن في المستودع أبدًا —
+      ولا في هذه الصفحة. المصدر:
+      <a href="https://github.com/sayedelazameydesign-crypto/easy-ai" rel="noopener">sayedelazameydesign-crypto/easy-ai</a></p>
+  </footer>
+</div>
+
+<script>
+"use strict";
+// Never trust fetched text: everything is inserted with textContent/createElement.
+function el(tag, cls, text){
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function shortHash(h){ return typeof h === "string" && h.length >= 12 ? h.slice(0,12) + "…" : "—"; }
+function fmtTime(iso){
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toUTCString().replace("GMT","UTC");
+}
+
+const STATUS_LABELS = {
+  ok:              {cls:"ok",   text:"متزامن"},
+  not_configured:  {cls:"warn", text:"غير مُهيّأ"},
+  blocked_scan:    {cls:"bad",  text:"محجوب بالفحص"},
+  error:           {cls:"bad",  text:"خطأ جلب"},
+};
+
+async function loadJson(url){
+  try {
+    const r = await fetch(url, {cache:"no-store"});
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
+async function main(){
+  const manifest = await loadJson("data/manifest.json");
+  const filesDoc = await loadJson("data/files.json");
+
+  // --- status badge: honest, manifest-driven only ---
+  const badge = document.getElementById("status-badge");
+  let statusKey = manifest && manifest.status;
+  let label = STATUS_LABELS[statusKey];
+  badge.querySelector("span:last-child").textContent = label ? label.text : "غير معروف";
+  if (label) badge.classList.add(label.cls);
+
+  if (manifest){
+    document.getElementById("m-status").textContent = label ? label.text : manifest.status;
+    document.getElementById("m-generated").textContent = fmtTime(manifest.generated_at);
+    document.getElementById("m-run").textContent = manifest.run_id || "—";
+    const c = manifest.counts || {};
+    document.getElementById("m-files").textContent = c.files ?? "—";
+    document.getElementById("m-with-content").textContent =
+      (c.with_content ?? "—") + " بمحتوى منقّح";
+    document.getElementById("m-redactions").textContent = c.redactions ?? "—";
+    const src = manifest.source || {};
+    document.getElementById("m-mode").textContent =
+      "المصدر: " + (src.type || "—") + " · وضع الاعتماد: " + (src.credential_mode || "—");
+
+    const hashes = document.getElementById("m-hashes");
+    hashes.textContent = "";
+    const arts = manifest.artifacts || {};
+    const names = Object.keys(arts);
+    if (!names.length) hashes.textContent = "لا قطع أثرية في هذا التشغيل (لم يُنشر محتوى).";
+    for (const n of names){
+      hashes.appendChild(el("div", null, n + " · " + shortHash(arts[n].sha256) +
+        " · " + (arts[n].bytes ?? "?") + " B"));
+    }
+
+    if (manifest.missing && manifest.missing.length){
+      const box = document.getElementById("not-configured");
+      box.style.display = "";
+      const chips = document.getElementById("missing-chips");
+      for (const m of manifest.missing) chips.appendChild(el("span","chip miss", m));
+    }
+    if (manifest.scan_findings && manifest.scan_findings.length){
+      document.getElementById("blocked").style.display = "";
+      const rows = document.getElementById("blocked-rows");
+      for (const f of manifest.scan_findings){
+        const tr = el("tr");
+        tr.appendChild(el("td", null, f.path));
+        tr.appendChild(el("td", null, String(f.line)));
+        tr.appendChild(el("td", null, f.rule));
+        rows.appendChild(tr);
+      }
+    }
+    const hist = (manifest.history || []).slice(-10).reverse();
+    const tbody = document.getElementById("history-rows");
+    if (hist.length){
+      tbody.textContent = "";
+      for (const h of hist){
+        const tr = el("tr");
+        tr.appendChild(el("td", null, h.run_id));
+        tr.appendChild(el("td", null, fmtTime(h.generated_at)));
+        const st = STATUS_LABELS[h.status];
+        tr.appendChild(el("td", null, st ? st.text : (h.status || "غير معروف")));
+        tr.appendChild(el("td", null, h.files ?? "—"));
+        tbody.appendChild(tr);
+      }
+    }
+  }
+
+  // --- files ---
+  const listBox = document.getElementById("files");
+  listBox.textContent = "";
+  const files = (filesDoc && filesDoc.files) || [];
+  if (!files.length){
+    listBox.appendChild(el("p","empty",
+      "لا يوجد محتوى منشور حاليًا — آخر تشغيل لم يكتب ملفات (راجع الحالة أعلاه)."));
+  }
+  files.forEach((f, i) => {
+    const card = el("div","file");
+    const row = el("div","row");
+    row.appendChild(el("span","name", f.name || "(بلا اسم)"));
+    row.appendChild(el("span","state " + (f.content_state||""), f.content_state || "غير معروف"));
+    card.appendChild(row);
+    if (f.description) card.appendChild(el("p","desc", f.description));
+    const meta = el("div","small",
+      (f.mime_type || "") + " · آخر تعديل: " + fmtTime(f.modified_time) +
+      (typeof f.size_bytes === "number" ? " · " + f.size_bytes + " B" : ""));
+    card.appendChild(meta);
+    if (f.fetch_error) card.appendChild(el("div","small","خطأ جلب آمن: " + f.fetch_error));
+    const links = el("div","chips");
+    if (f.web_view_link && /^https:\/\/(drive|docs|colab)\.google\.com\//.test(f.web_view_link)){
+      const a = el("a", null, "فتح في Google Drive");
+      a.href = f.web_view_link; a.target = "_blank"; a.rel = "noopener noreferrer";
+      const chip = el("span","chip"); chip.appendChild(a); links.appendChild(chip);
+    }
+    links.appendChild(el("span","chip","id: " + (f.id || "—")));
+    card.appendChild(links);
+    if (typeof f.content === "string" && f.content.trim()){
+      const pre = el("pre","content", f.content);   // textContent — XSS-safe
+      const btn = el("button","toggle","عرض المحتوى المنقّح");
+      btn.addEventListener("click", () => {
+        const open = pre.classList.toggle("open");
+        btn.textContent = open ? "إخفاء المحتوى" : "عرض المحتوى المنقّح";
+      });
+      card.appendChild(btn);
+      card.appendChild(pre);
+    }
+    listBox.appendChild(card);
+  });
+}
+main();
+</script>
+</body>
+</html>
