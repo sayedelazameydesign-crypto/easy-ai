@@ -1,43 +1,43 @@
 {
- "artifacts": {
-  "files.json": {
-   "bytes": 10085,
-   "sha256": "1b11e460f2eb963e8c602a6dfeed0e40fbb32afeb047412a7c088e80c734247b"
-  },
-  "latest.md": {
-   "bytes": 624,
-   "sha256": "676560b6b6d33c28a1b941b96297f1a313a9b6fd256643c40ba325dcc607b7d6"
-  }
- },
+ "artifacts": {},
  "counts": {
-  "by_state": {
-   "ok": 2
-  },
-  "files": 2,
+  "by_state": {},
+  "files": 0,
   "redactions": 0,
-  "with_content": 2
+  "with_content": 0
  },
- "generated_at": "2026-10-08T23:05:12Z",
+ "generated_at": "2026-10-08T23:14:15Z",
  "generator": "easy-ai-sync/1.0.0",
- "history": [],
+ "history": [
+  {
+   "files": 2,
+   "generated_at": "2026-10-08T23:05:12Z",
+   "run_id": "20261008T230512Z",
+   "status": "ok"
+  }
+ ],
  "last_good_run": {
-  "files": null,
-  "generated_at": "",
-  "run_id": "seeded",
+  "files": 2,
+  "generated_at": "2026-10-08T23:05:12Z",
+  "run_id": "20261008T230512Z",
   "status": "ok"
  },
- "missing": [],
- "notes": [
-  "SYNC_VAULT_KEY not set — no encrypted raw snapshot was kept"
+ "missing": [
+  "GOOGLE_DRIVE_REFRESH_TOKEN",
+  "GOOGLE_DRIVE_CLIENT_ID",
+  "GOOGLE_DRIVE_CLIENT_SECRET"
  ],
- "run_id": "20261008T230512Z",
+ "notes": [
+  "half-configured credentials are treated as not configured (gateway rule) — nothing was attempted"
+ ],
+ "run_id": "20261008T231415Z",
  "scan_findings": [],
  "schema": 1,
  "source": {
-  "credential_mode": "arena-connector",
-  "folder_id": "1tb_cBlKZwKy98Ug-1Ie84ZOEnLoZ3lub",
-  "query": "'1tb_cBlKZwKy98Ug-1Ie84ZOEnLoZ3lub' in parents and trashed = false",
+  "credential_mode": "none",
+  "folder_id": null,
+  "query": null,
   "type": "google-drive"
  },
- "status": "ok"
+ "status": "not_configured"
 }
