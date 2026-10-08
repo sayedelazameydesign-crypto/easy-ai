@@ -16,8 +16,9 @@ seeds/
 vault/
 *-raw.json
 
-# Generated at deploy time (publish job copies data/ into site/data/)
+# Generated at deploy time (scripts/build_pages.py assembles _pages/)
 site/data/
+_pages/
 
 # OS
 .DS_Store

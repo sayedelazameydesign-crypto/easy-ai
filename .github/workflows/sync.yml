@@ -16,7 +16,11 @@ on:
     paths:
       - "sync/**"
       - "site/**"
+      - "scripts/build_pages.py"
       - "config/**"
+      - "index.html"
+      - "css/**"
+      - "js/**"
       - ".github/workflows/sync.yml"
 
 permissions: {}
@@ -88,10 +92,8 @@ jobs:
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
 
-      - name: Stage site with public data
-        run: |
-          mkdir -p site/data
-          cp -R data/. site/data/
+      - name: Assemble Pages artifact (chat at /, dashboard at /sync/)
+        run: python scripts/build_pages.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -101,7 +103,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _pages
 
       - name: Deploy to GitHub Pages
         id: deployment

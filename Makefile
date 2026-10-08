@@ -18,8 +18,8 @@ sync:
 	$(PY) -m sync run --source gdrive
 
 preview:
-	mkdir -p site/data && cp -R data/. site/data/
-	$(PY) -m http.server 8000 --bind 0.0.0.0 --directory site
+	$(PY) scripts/build_pages.py
+	$(PY) -m http.server 8000 --bind 0.0.0.0 --directory _pages
 
 clean:
 	rm -rf .pytest_cache **/__pycache__
