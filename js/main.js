@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApp() {
+    window.easyAI.initializeBackend().then(updateChatCapability).catch(() => updateChatCapability('demo'));
     initNavigation();
     initLanguageToggle();
     initChat();
@@ -72,6 +73,23 @@ function initLanguageToggle() {
     document.addEventListener('languageChanged', (e) => {
         updateDynamicContent(e.detail.lang);
     });
+}
+
+function updateChatCapability(mode) {
+    const card = document.querySelector('.feature-card[data-tool="chat"]');
+    if (!card) return;
+    card.dataset.status = mode;
+    const badge = card.querySelector('.feature-status');
+    if (badge) {
+        badge.className = `feature-status status-${mode}`;
+        badge.setAttribute('data-i18n', `status.${mode}`);
+        badge.textContent = window.i18n.t(`status.${mode}`);
+    }
+    const chatStatus = document.querySelector('.chat-status [data-i18n]');
+    if (chatStatus && mode === 'implemented') {
+        chatStatus.setAttribute('data-i18n', 'chat.connected');
+        chatStatus.textContent = window.i18n.t('chat.connected');
+    }
 }
 
 function updateChatLanguage() {
@@ -160,7 +178,10 @@ function initChat() {
             })
             .catch(error => {
                 hideTypingIndicator();
-                addMessage('😅 Sorry, something went wrong. Please try again.', 'ai');
+                const status = error?.status;
+                const key = ['rate_limited', 'provider_timeout', 'not_configured'].includes(status)
+                    ? `chat.error.${status}` : 'chat.error.provider_error';
+                addMessage(window.i18n.t(key), 'ai');
                 console.error('AI Error:', error);
             });
     }

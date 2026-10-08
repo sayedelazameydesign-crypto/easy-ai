@@ -6,7 +6,9 @@
 
 
 const FEATURE_CATALOG = Object.freeze({
-    chat: Object.freeze({ status: 'demo' }),
+    // Chat can move from demo to implemented only after /api/status confirms
+    // that the server-side provider is configured.
+    chat: { status: 'demo' },
     translate: Object.freeze({ status: 'unavailable' }),
     summarize: Object.freeze({ status: 'unavailable' }),
     code: Object.freeze({ status: 'unavailable' }),
@@ -26,9 +28,12 @@ function resolveFeatureActivation(tool, declaredStatus) {
 }
 
 class EasyAI {
-    constructor() {
+    constructor(apiClient = null) {
         this.conversationHistory = [];
         this.isTyping = false;
+        this.apiClient = apiClient || (typeof window !== 'undefined' && window.ChatApiClient
+            ? new window.ChatApiClient() : null);
+        this.mode = 'demo';
         
         // Response templates
         this.responses = {
@@ -61,6 +66,19 @@ class EasyAI {
         };
     }
     
+    async initializeBackend() {
+        if (!this.apiClient) return 'demo';
+        const status = await this.apiClient.status();
+        if (status.status === 'ok' && status.chat === 'implemented') {
+            this.mode = 'implemented';
+            FEATURE_CATALOG.chat.status = 'implemented';
+            return 'implemented';
+        }
+        this.mode = 'demo';
+        FEATURE_CATALOG.chat.status = 'demo';
+        return 'demo';
+    }
+
     /**
      * Analyze message and determine intent
      */
@@ -121,10 +139,21 @@ class EasyAI {
      * Generate AI response
      */
     async generateResponse(userMessage) {
-        const intent = this.analyzeIntent(userMessage);
         const lang = window.i18n?.getLanguage() || 'ar';
-        
-        // Simulate thinking delay
+
+        if (this.mode === 'implemented') {
+            const messages = this.conversationHistory
+                .slice(-19)
+                .map(({ role, content }) => ({ role, content }));
+            messages.push({ role: 'user', content: userMessage });
+            const response = await this.apiClient.complete(messages);
+            this.conversationHistory.push({ role: 'user', content: userMessage, timestamp: Date.now() });
+            this.conversationHistory.push({ role: 'assistant', content: response, timestamp: Date.now() });
+            return response;
+        }
+
+        const intent = this.analyzeIntent(userMessage);
+        // Simulate thinking delay only in explicitly labeled demo mode.
         await this.simulateDelay();
 
         // Never simulate success for capabilities that are not connected.

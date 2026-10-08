@@ -31,5 +31,5 @@ jobs:
         run: python -m pytest -q
       - name: Interface translation tests
         run: node --test tests-js/*.test.js
-      - name: Scan gate (published data, interface, config, and docs)
-        run: python -m sync scan data site config docs js css tests-js index.html README.md SECURITY.md --gate
+      - name: Scan gate (backend, published data, interface, config, and docs)
+        run: python -m sync scan backend/*.py data site config docs js css tests-js index.html README.md SECURITY.md --gate

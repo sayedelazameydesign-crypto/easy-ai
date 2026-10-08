@@ -76,5 +76,5 @@ test('README documents every browser feature with its runtime status', () => {
   for (const status of new Set(Object.values(FEATURE_CATALOG).map((feature) => feature.status))) {
     assert.ok(readme.includes(`| \`${status}\` |`), `README is missing ${status} status`);
   }
-  assert.match(readme, /Never place provider API keys in browser/);
+  assert.match(readme, /Never place provider API keys in\s+browser/);
 });

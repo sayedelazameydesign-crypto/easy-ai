@@ -2,8 +2,9 @@
 
 > ذكاء اصطناعي سهل للجميع | AI made easy for everyone
 
-A modern bilingual (Arabic/English) **demo chat interface with preset responses** — no AI
-model or external provider is currently connected — plus a **secure sync channel** that mirrors a scoped Google Drive folder into this repo and
+A modern bilingual (Arabic/English) chat interface with an optional, server-side text-model
+backend. Static hosting remains an explicit preset-response demo when no backend is configured —
+plus a **secure sync channel** that mirrors a scoped Google Drive folder into this repo and
 publishes it to the world through GitHub Pages.
 
 ![Easy AI](https://img.shields.io/badge/version-1.1.0-blue)
@@ -125,15 +126,18 @@ The current version includes a **demo engine with preset responses**, not a conn
 | Capability | Status | Current behavior |
 |---|---|---|
 | Language switching and responsive interface | `implemented` | Runs locally in the browser |
-| Chat, greetings, jokes, and facts | `demo` | Uses intent matching, fixed responses, and a simulated delay |
+| Text chat | `implemented` when the backend is configured; otherwise `demo` | Calls `POST /api/chat`; preset responses remain visibly separate fallback demo mode |
+| Demo greetings, jokes, and facts | `demo` | Uses intent matching, fixed responses, and a simulated delay only when no backend is active |
 | Translation | `unavailable` | Clearly reports that no translation service is connected |
 | Text summarization | `unavailable` | Clearly reports that no model is connected |
 | Coding assistance | `unavailable` | Clearly reports that no code-analysis service is connected |
 | Image description | `unavailable` | No image upload or analysis is implemented |
 | Speech to text | `unavailable` | Recording and transcription are not implemented |
 
-Connecting a real model requires a trusted backend. **Never place provider API keys in browser
-JavaScript or HTML.** The current repository intentionally contains no model credentials.
+The optional backend keeps provider credentials on the server and implements bounded `GET /api/status`
+and `POST /api/chat` endpoints. See [docs/AI_BACKEND_DESIGN.md](docs/AI_BACKEND_DESIGN.md) for
+configuration, limitations, provider review, and local operation. **Never place provider API keys in
+browser JavaScript or HTML.** The repository intentionally contains no model credentials.
 
 ## 🎨 Customization
 
