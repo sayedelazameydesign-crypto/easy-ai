@@ -258,7 +258,24 @@ Thresholds تعتمد المهمة والخطر: `NOT_DEFINED`.
 طلبات لا تدعمها القدرة، لقياس الامتناع الصحيح بدل التخمين.
 
 كل حالة لها المصدر والترخيص والخطر والنتيجة المتوقعة وسببها. لا تُحفظ payloads
-ضارة أو أسرار حقيقية دون عزل وصلاحية. Dataset الاختبار الحالية: `NOT_DEFINED`.
+ضارة أو أسرار حقيقية دون عزل وصلاحية.
+
+### 10.5 البذرة المحلية الحالية
+
+يحتوي `tests/fixtures/robustness_eval.v1.json` على بذرة صناعية ثنائية اللغة من 28
+حالة تغطي الفئات المذكورة، ويتحقق `tests/test_robustness_eval_contract.py` من العقد
+وتفرد المعرفات والتغطية العربية/الإنجليزية وغياب أنماط الأسرار المباشرة. حالتها
+`SEED_ONLY_NOT_BENCHMARK_READY` للأسباب التالية:
+
+- ليست عينة ممثلة لحركة إنتاج أو لهجات أو مخاطر واقعية كاملة.
+- لم تُشغّل على مزود أو نموذج فعلي.
+- expected behavior وinvariants مواصفات بشرية، وليست evaluator منفذًا.
+- لا تقيس ASR أو safe completion أو over-refusal تلقائيًا.
+- لا تُستخدم للتدريب ولا تثبت المتانة.
+
+توسيعها إلى 500 حالة لا يكون بالنسخ القالبي لمجرد بلوغ رقم؛ يلزم taxonomy ومراجعة
+نوعية ومصادر وحقوق وحالات مستقلة كافية لكل خطر. حالة benchmark الكامل:
+`NOT_DEFINED`.
 
 ## 11. المقاييس
 
@@ -411,8 +428,9 @@ Thresholds وrisk acceptance: `NOT_DEFINED`. لا تجمع المقاييس ال
 |---|---|---|
 | اعتبار النموذج/المخرجات غير موثوقة | `PROPOSED` | تطبيق عبر كل حد وتنفيذ اختبارات |
 | Model/provider/version | `NOT_DECIDED` | تحقق رسمي وتجربة حقيقية مصرح بها |
-| Robustness evaluation set | `NOT_DEFINED` | use cases ولغات ومخاطر ومصادر |
-| Stability thresholds | `NOT_DEFINED` | baseline وتكرارات وخطر المهمة |
+| Robustness evaluation seed | `SEED_ONLY_NOT_BENCHMARK_READY` | 28 حالة صناعية وعقد متحقق محليًا |
+| Full robustness benchmark | `NOT_DEFINED` | use cases ولغات ومخاطر ومصادر ومراجعة نوعية |
+| Stability thresholds | `NOT_DEFINED` | baseline وتكرارات وخطر المهمة؛ لا اعتماد لـ95%/<1% بعد |
 | Prompt-injection red team | `NOT_PERFORMED` | نموذج فعلي ونطاق وتصريح وبيئة |
 | RAG/browsing robustness | `NOT_APPROVED` | حاجة وACL وSSRF وحقائق وتقييم |
 | Tool/agent execution | `NOT_APPROVED` | عقود وصلاحيات وsandbox وموافقات |
