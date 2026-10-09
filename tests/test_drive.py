@@ -3,7 +3,14 @@ import json
 import pytest
 
 from sync.config import NotConfiguredError, SyncConfig
-from sync.drive import DriveClient, DriveError
+from sync.drive import (
+    DRIVE_BASE,
+    SA_TOKEN_HOSTS,
+    SA_TOKEN_PATH,
+    DriveClient,
+    DriveError,
+    _check_token_uri,
+)
 
 
 class FakeResponse:
@@ -129,7 +136,7 @@ def test_google_doc_exported_as_text():
          "webViewLink": "u", "modifiedTime": "t", "size": "10"}]})
     client = make_client(responses=[
         FakeResponse(payload={"access_token": "t"}), list_resp,
-        FakeResponse(body="نص المستند".encode("utf-8"))])
+        FakeResponse(body="نص المستند".encode())])
     out = client.fetch()
     rec = out["files"][0]
     assert rec["content_state"] == "exported" and rec["content"] == "نص المستند"
@@ -154,7 +161,7 @@ def test_folder_scoping_query():
         FakeResponse(payload={"access_token": "t"}),
         FakeResponse(payload={"files": []})])
     client.fetch()
-    _, url, kw = client.session.calls[1]
+    _, _, kw = client.session.calls[1]
     assert "'FOLDER123' in parents" in kw["params"]["q"]
     assert "trashed = false" in kw["params"]["q"]
     assert kw["params"]["supportsAllDrives"] == "true"
@@ -215,6 +222,225 @@ def test_service_account_jwt_flow():
     assert client.access_token() == "sa-tok"
     assert client.credential_mode == "service_account"
     method, url, kw = client.session.calls[0]
+    assert method == "post"
+    assert url == "https://oauth2.googleapis.com/token"   # pinned, never sa["token_uri"]
     assert kw["data"]["grant_type"] == \
         "urn:ietf:params:oauth:grant-type:jwt-bearer"
     assert kw["data"]["assertion"].count(".") == 2
+
+
+# --- service-account endpoint pinning ---------------------------------------
+# `token_uri` lives inside the GOOGLE_SERVICE_ACCOUNT_JSON secret, so a tampered
+# secret could otherwise aim the signed assertion at an attacker host.
+
+def _sa_json(token_uri, client_email="sync@proj.iam.gserviceaccount.com"):
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    pem = key.private_bytes(encoding=serialization.Encoding.PEM,
+                            format=serialization.PrivateFormat.PKCS8,
+                            encryption_algorithm=serialization.NoEncryption()).decode()
+    return json.dumps({"client_email": client_email, "private_key": pem,
+                       "token_uri": token_uri})
+
+
+@pytest.mark.parametrize("bad_uri", [
+    "http://oauth2.googleapis.com/token",                 # downgrade to plain HTTP
+    "https://evil.test/token",                            # unrelated host
+    "https://oauth2.googleapis.com.evil.test/token",      # suffix lookalike
+    "https://oauth2.googleapis.com:8443/token",           # unexpected port
+    "https://oauth2.googleapis.com/token/extra",          # unexpected path
+    "https://oauth2.googleapis.com/token?redirect=x",     # query smuggling
+    "https:///token",                                     # no host at all
+    "oauth2.googleapis.com/token",                        # no scheme
+])
+def test_service_account_refuses_non_google_token_uri(bad_uri):
+    client = DriveClient(config=SyncConfig(),
+                         env={"GOOGLE_SERVICE_ACCOUNT_JSON": _sa_json(bad_uri)},
+                         session=FakeSession([]))
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    assert "not an approved Google token endpoint" in str(exc.value)
+    assert client.session.calls == []          # refused BEFORE any request was made
+
+
+@pytest.mark.parametrize("bad_uri", ["", "   ", None, 1234, ["https://oauth2.googleapis.com"]])
+def test_service_account_rejects_unusable_token_uri(bad_uri):
+    """Empty or non-string token_uri is caught as a missing field — no request."""
+    client = DriveClient(config=SyncConfig(),
+                         env={"GOOGLE_SERVICE_ACCOUNT_JSON": _sa_json(bad_uri)},
+                         session=FakeSession([]))
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    assert "missing field: token_uri" in str(exc.value)
+    assert client.session.calls == []
+
+
+def test_service_account_error_never_echoes_the_url():
+    client = DriveClient(config=SyncConfig(),
+                         env={"GOOGLE_SERVICE_ACCOUNT_JSON":
+                              _sa_json("https://collector.evil.test/token?exfil=1")},
+                         session=FakeSession([]))
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    message = str(exc.value)
+    # host + scheme are safe diagnostics; the full URL and query are not
+    assert "collector.evil.test" in message
+    assert "exfil=1" not in message
+    assert "https://collector.evil.test/token" not in message
+
+
+def test_token_uri_helper_accepts_only_pinned_google_https():
+    for host in sorted(SA_TOKEN_HOSTS):
+        assert _check_token_uri(f"https://{host}{SA_TOKEN_PATH}") == f"https://{host}{SA_TOKEN_PATH}"
+    with pytest.raises(DriveError):
+        _check_token_uri("https://accounts.google.com/o/oauth2/token")
+
+
+def test_service_account_json_must_be_an_object():
+    client = DriveClient(config=SyncConfig(),
+                         env={"GOOGLE_SERVICE_ACCOUNT_JSON": "[1, 2, 3]"},
+                         session=FakeSession([]))
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    assert "must be a JSON object" in str(exc.value)
+    assert "[1, 2, 3]" not in str(exc.value)
+
+
+def test_service_account_rejects_non_string_fields():
+    client = DriveClient(config=SyncConfig(),
+                         env={"GOOGLE_SERVICE_ACCOUNT_JSON": json.dumps(
+                             {"client_email": 5, "private_key": "x",
+                              "token_uri": "https://oauth2.googleapis.com/token"})},
+                         session=FakeSession([]))
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    assert "missing field: client_email" in str(exc.value)
+
+
+# --- token endpoint response shape ------------------------------------------
+
+@pytest.mark.parametrize("payload", [
+    ["not", "a", "dict"],
+    "just a string",
+    42,
+    None,
+])
+def test_token_response_must_be_a_json_object(payload):
+    client = make_client(responses=[FakeResponse(payload=payload)])
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    assert "unexpected JSON shape" in str(exc.value)
+
+
+@pytest.mark.parametrize("token", [None, "", "   ", 12345, {"nested": "object"}, ["list"]])
+def test_token_response_rejects_unusable_access_token(token):
+    client = make_client(responses=[FakeResponse(payload={"access_token": token})])
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    assert "no access_token" in str(exc.value)
+
+
+def test_token_response_non_json_is_drive_error():
+    client = make_client(responses=[FakeResponse(json_ok=False)])
+    with pytest.raises(DriveError) as exc:
+        client.access_token()
+    assert "non-JSON body" in str(exc.value)
+
+
+# --- listing response shape --------------------------------------------------
+
+def test_list_rejects_non_dict_payload():
+    client = make_client(responses=[FakeResponse(payload={"access_token": "t"}),
+                                    FakeResponse(payload=["nope"])])
+    with pytest.raises(DriveError) as exc:
+        client.fetch()
+    assert "unexpected JSON shape" in str(exc.value)
+
+
+def test_list_rejects_non_list_files_field():
+    client = make_client(responses=[FakeResponse(payload={"access_token": "t"}),
+                                    FakeResponse(payload={"files": {"id": "f1"}})])
+    with pytest.raises(DriveError) as exc:
+        client.fetch()
+    assert "non-list" in str(exc.value)
+
+
+def test_list_rejects_malformed_file_entry():
+    client = make_client(responses=[FakeResponse(payload={"access_token": "t"}),
+                                    FakeResponse(payload={"files": ["just-a-string"]})])
+    with pytest.raises(DriveError) as exc:
+        client.fetch()
+    assert "malformed file entry" in str(exc.value)
+
+
+def test_list_non_json_body_is_safe_error():
+    client = make_client(responses=[FakeResponse(payload={"access_token": "t"}),
+                                    FakeResponse(json_ok=False)])
+    with pytest.raises(DriveError) as exc:
+        client.fetch()
+    assert "non-JSON body" in str(exc.value)
+
+
+def test_non_string_next_page_token_stops_pagination():
+    """A malformed token must stop the loop, not trigger another request."""
+    client = make_client(responses=[
+        FakeResponse(payload={"access_token": "t"}),
+        FakeResponse(payload={"files": [], "nextPageToken": {"not": "a string"}}),
+    ])
+    out = client.fetch()
+    assert out["files"] == []
+    assert len(client.session.calls) == 2      # token + one list call, no more
+
+
+def test_files_field_may_be_absent():
+    client = make_client(responses=[FakeResponse(payload={"access_token": "t"}),
+                                    FakeResponse(payload={})])
+    assert client.fetch()["files"] == []
+
+
+# --- record coercion and URL construction ------------------------------------
+
+def test_record_fields_are_coerced_to_text():
+    client = make_client(responses=[
+        FakeResponse(payload={"access_token": "t"}),
+        FakeResponse(payload={"files": [{"id": 7, "name": None, "mimeType": ["x"],
+                                         "modifiedTime": {}, "size": "not-a-number",
+                                         "webViewLink": 42, "description": None}]}),
+    ])
+    rec = client.fetch()["files"][0]
+    assert rec["id"] == "" and rec["name"] == "" and rec["mime_type"] == ""
+    assert rec["modified_time"] == "" and rec["web_view_link"] == ""
+    assert rec["description"] == ""
+    assert rec["size_bytes"] is None           # unparsable size is unknown, not 0
+    # a non-string id can never reach a URL path — the record says so honestly
+    assert rec["content_state"] == "error"
+    assert rec["fetch_error"] == "skipped: unusable file id"
+
+
+def test_unusable_file_id_is_refused_without_a_request():
+    client = make_client(responses=[
+        FakeResponse(payload={"access_token": "t"}),
+        FakeResponse(payload={"files": [{"id": "../../etc/passwd", "name": "x.md",
+                                         "mimeType": "text/plain", "size": "2"}]}),
+    ])
+    out = client.fetch()
+    rec = out["files"][0]
+    assert rec["content_state"] == "error"
+    assert rec["fetch_error"] == "skipped: unusable file id"
+    assert len(client.session.calls) == 2      # no download was attempted
+
+
+def test_download_url_is_built_on_the_pinned_drive_host():
+    client = make_client(responses=[
+        FakeResponse(payload={"access_token": "t"}),
+        FakeResponse(payload={"files": [{"id": "f-1_a", "name": "a.md",
+                                         "mimeType": "text/plain", "size": "5"}]}),
+        FakeResponse(body=b"hello"),
+    ])
+    out = client.fetch()
+    assert out["files"][0]["content"] == "hello"
+    _, url, kw = client.session.calls[2]
+    assert url == f"{DRIVE_BASE}/files/f-1_a"
+    assert kw["headers"]["Authorization"].startswith("Bearer ")

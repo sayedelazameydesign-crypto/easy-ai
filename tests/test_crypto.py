@@ -4,7 +4,7 @@ from sync.crypto import MAGIC, VaultError, vault_decrypt, vault_encrypt
 
 
 def test_roundtrip():
-    blob = vault_encrypt("سلام يا عالم — hello".encode("utf-8"), "a-strong-passphrase-123")
+    blob = vault_encrypt("سلام يا عالم — hello".encode(), "a-strong-passphrase-123")
     assert blob.startswith(MAGIC)
     assert vault_decrypt(blob, "a-strong-passphrase-123").decode("utf-8") == \
         "سلام يا عالم — hello"

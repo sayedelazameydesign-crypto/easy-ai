@@ -124,7 +124,7 @@ class SyncConfig:
         return self.repo_root / "vault"
 
     @classmethod
-    def load(cls, path: pathlib.Path | str | None = None) -> "SyncConfig":
+    def load(cls, path: pathlib.Path | str | None = None) -> SyncConfig:
         path = pathlib.Path(path) if path else CONFIG_PATH
         raw: dict = {}
         if path.exists():
@@ -139,5 +139,5 @@ class SyncConfig:
         kwargs = {k: v for k, v in raw.items() if k in known}
         return cls(drive=DriveSourceConfig(**drive_raw), **kwargs)
 
-    def with_root(self, root: pathlib.Path) -> "SyncConfig":
+    def with_root(self, root: pathlib.Path) -> SyncConfig:
         return dataclasses.replace(self, repo_root=pathlib.Path(root))

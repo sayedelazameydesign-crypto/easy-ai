@@ -14,14 +14,14 @@ from __future__ import annotations
 import hashlib
 import json
 import pathlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 GENERATOR = "easy-ai-sync/1.0.0"
 SCHEMA = 1
 
 
 def utcnow_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def sha256_file(path: pathlib.Path) -> str:

@@ -55,9 +55,12 @@ Google Drive ──TLS/OAuth2──▶ GitHub Actions (كل ساعة)
   (يُعدَّل في `config/sync.yaml` أو بـ `GOOGLE_DRIVE_FOLDER_ID`).
 
 ```bash
+make bootstrap # تهيئة البيئة مرة واحدة (أدوات + .venv + اعتماديات + فحوص)
 make doctor    # فحص البيئة — بلا شبكة وبلا طباعة أي قيمة
-make sync      # مزامنة حقيقية        |  make test   # 51 اختبارًا
-make scan      # بوابة الفحص           |  make preview # معاينة الصفحات
+make sync      # مزامنة حقيقية        |  make test   # 118 اختبارًا
+make scan      # بوابة الفحص           |  make lint   # ruff (قواعده في pyproject.toml)
+make quality   # lint + tests + scan + doctor، كما يفعل CI
+make preview   # معاينة الصفحات (الدردشة في / واللوحة في /sync/)
 ```
 
 ## 🛠️ Built With
@@ -99,13 +102,15 @@ easy-ai/
 ├── sync/               # قناة المزامنة: drive, redact, crypto, scan, store, pipeline
 ├── site/               # لوحة المزامنة العامة (تُنشر تحت /sync/)
 ├── scripts/
-│   └── build_pages.py  # تجميع artifact النشر: الدردشة في / واللوحة في /sync/
+│   ├── build_pages.py      # تجميع artifact النشر: الدردشة في / واللوحة في /sync/
+│   └── setup-linux-dev.sh  # تهيئة بيئة Debian/Ubuntu (make bootstrap)
 ├── data/               # المخرجات المنقّحة + manifest بالبصمات (تُلزم)
 ├── config/sync.yaml    # إعداد القناة (بلا أسرار)
-├── tests/              # 51 اختبارًا
+├── tests/              # 118 اختبارًا
 ├── docs/SETUP.md       # دليل الإعداد خطوة بخطوة
 ├── SECURITY.md         # نموذج التهديد والضوابط
-└── .github/workflows/  # sync.yml (ساعي + Pages) · ci.yml (اختبارات + بوابة فحص)
+├── pyproject.toml      # قواعد ruff + إعداد pytest (مصدر واحد محليًا وفي CI)
+└── .github/workflows/  # sync.yml (ساعي + Pages) · ci.yml (اختبارات + بوابة + ruff/shellcheck)
 ```
 
 ## ⌨️ Keyboard Shortcuts

@@ -14,15 +14,18 @@ set -Eeuo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-if [[ "${EUID}" -ne 0 ]]; then
-  if command -v sudo >/dev/null 2>&1; then
-    SUDO=(sudo)
-  else
-    SUDO=()   # unprivileged mode: skip apt, still do the venv
-    printf 'NOTE: no sudo and not root — OS packages will be skipped.\n' >&2
-  fi
+# Privilege handling. NOTE: an empty bash array expands to nothing under
+# `set -u` on bash < 4.4, so every use below is guarded by PRIVILEGED, not by
+# the array's length (which is 0 both for "root" and for "no sudo at all").
+SUDO=()
+PRIVILEGED=0
+if [[ "${EUID}" -eq 0 ]]; then
+  PRIVILEGED=1
+elif command -v sudo >/dev/null 2>&1; then
+  SUDO=(sudo)
+  PRIVILEGED=1
 else
-  SUDO=()
+  printf 'NOTE: no sudo and not root — OS packages will be skipped.\n' >&2
 fi
 
 if [[ ! -r /etc/os-release ]]; then
@@ -65,7 +68,7 @@ printf 'PyPI         : %s\n' "$([[ $PYPI_OK -eq 1 ]] && echo reachable || echo U
 printf 'GitHub API   : %s\n' "$([[ $GH_OK   -eq 1 ]] && echo reachable || echo UNREACHABLE)"
 
 # --- 1) OS packages ----------------------------------------------------------
-if [[ $APT_OK -eq 1 && ${#SUDO[@]} -ge 0 ]]; then
+if [[ $APT_OK -eq 1 && $PRIVILEGED -eq 1 ]]; then
   printf '\n-- Installing OS packages --\n'
   "${SUDO[@]}" apt-get update
   "${SUDO[@]}" apt-get install -y --no-install-recommends "${PACKAGES[@]}"
@@ -76,12 +79,12 @@ fi
 
 # Debian/Ubuntu ship `fdfind`; add a convenience wrapper if needed.
 if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
-  printf '\nCreating %s wrapper for fdfind...\n' \
-    "$([[ ${#SUDO[@]} -gt 0 || $EUID -eq 0 ]] && echo /usr/local/bin/fd || echo ~/.local/bin/fd)"
-  if [[ $EUID -eq 0 || ${#SUDO[@]} -gt 0 ]]; then
+  if [[ $PRIVILEGED -eq 1 ]]; then
+    printf '\nCreating /usr/local/bin/fd wrapper for fdfind...\n'
     printf '#!/bin/sh\nexec fdfind "$@"\n' | "${SUDO[@]}" tee /usr/local/bin/fd >/dev/null
     "${SUDO[@]}" chmod 0755 /usr/local/bin/fd
   else
+    printf '\nCreating ~/.local/bin/fd wrapper for fdfind...\n'
     mkdir -p "$HOME/.local/bin"
     printf '#!/bin/sh\nexec fdfind "$@"\n' > "$HOME/.local/bin/fd"
     chmod 0755 "$HOME/.local/bin/fd"
@@ -129,13 +132,42 @@ if command -v node >/dev/null 2>&1; then node --version; else printf 'Node.js: n
 if command -v npm  >/dev/null 2>&1; then npm  --version; else printf 'npm: not installed\n'; fi
 
 printf '\n== Project checks ==\n'
+# A failing check must fail the script: with `set -o pipefail` a bare
+# `cmd || printf …` swallows the exit status and CI would report success.
+FAILED=0
 if "$PY" -c 'import requests, cryptography, yaml, pytest' 2>/dev/null; then
   printf 'OK      dependencies import cleanly\n'
-  "$PY" -m pytest -q || printf 'tests FAILED — see output above\n' >&2
+  if ! "$PY" -m pytest -q; then
+    printf 'FAILED  pytest — see output above\n' >&2
+    FAILED=1
+  fi
+  if ! "$PY" -m sync scan data site config docs README.md SECURITY.md --gate; then
+    printf 'FAILED  scan gate — see output above\n' >&2
+    FAILED=1
+  fi
+  # doctor reports NOT CONFIGURED without credentials — that is correct, not a
+  # failure, so it never gates the script.
   "$PY" -m sync doctor || true
+  # ruff is a standalone binary installed into the venv by requirements-dev.txt.
+  RUFF="$REPO_ROOT/.venv/bin/ruff"
+  [[ -x "$RUFF" ]] || RUFF="$(command -v ruff || true)"
+  if [[ -n "$RUFF" ]]; then
+    if ! "$RUFF" check .; then
+      printf 'FAILED  ruff — see output above\n' >&2
+      FAILED=1
+    fi
+  else
+    printf 'NOTE    ruff not installed — lint step skipped\n'
+  fi
 else
-  printf 'MISSING one or more Python dependencies (requests/cryptography/PyYAML/pytest)\n'
+  printf 'MISSING one or more Python dependencies (requests/cryptography/PyYAML/pytest)\n' >&2
+  FAILED=1
+fi
+
+if [[ $FAILED -ne 0 ]]; then
+  printf '\nSetup finished with FAILURES — no project source files were modified.\n' >&2
+  exit 1
 fi
 
 printf '\nSetup complete. No project source files were modified.\n'
-printf 'Next: make test | make doctor | make scan | make preview\n'
+printf 'Next: make test | make lint | make doctor | make scan | make preview\n'

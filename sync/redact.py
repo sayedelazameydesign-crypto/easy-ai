@@ -8,7 +8,8 @@ keys, contact data and cards that may appear inside synced documents.
 from __future__ import annotations
 
 import re
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 REDACTED = "[REDACTED:{kind}]"
 

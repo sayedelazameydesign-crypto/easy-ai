@@ -72,11 +72,20 @@ gh secret set SYNC_VAULT_KEY               # اختياري: openssl rand -hex 3
 ## 5) التحقق بعد الضبط
 
 ```bash
+make bootstrap                     # أول مرة: أدوات + .venv + اعتماديات + فحوص
 python -m sync doctor              # صحة البيئة — بلا شبكة وبلا قيم
 python -m sync run --dry-run       # دورة كاملة بلا كتابة
-python -m sync scan data --gate    # بوابة الفحص
-make test                          # الاختبارات كاملة
+python -m sync scan data --gate    # بوابة الفحص (تفشل مُغلَقة عند أي مسار غير مقروء)
+make quality                       # lint + الاختبارات + البوابة + doctor، كما في CI
 ```
+
+ملاحظتان على البوابة:
+
+- مسار ناقص أو غير قابل للقراءة يُسجَّل (`missing_path` / `unreadable_path` /
+  `unreadable_file`) ويخرج `scan` برمز ≠ 0 **حتى بلا `--gate`** — سطح لم يُفحص
+  لا يُعلن نظيفًا.
+- قائمة الأسطح المفحوصة في CI معرّفة مرة واحدة في `Makefile` (`SCAN_PATHS`)
+  ويستدعيها `ci.yml` نفسها، فلا ينشأ اختلاف بين المحلي وCI.
 
 ## فك لقطة خام (للمالك فقط، محليًا)
 
