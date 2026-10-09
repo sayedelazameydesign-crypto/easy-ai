@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApp() {
+    window.easyAI.initializeBackend().then(updateChatCapability).catch(() => updateChatCapability('demo'));
     initNavigation();
     initLanguageToggle();
     initChat();
@@ -74,6 +75,23 @@ function initLanguageToggle() {
     });
 }
 
+function updateChatCapability(mode) {
+    const card = document.querySelector('.feature-card[data-tool="chat"]');
+    if (!card) return;
+    card.dataset.status = mode;
+    const badge = card.querySelector('.feature-status');
+    if (badge) {
+        badge.className = `feature-status status-${mode}`;
+        badge.setAttribute('data-i18n', `status.${mode}`);
+        badge.textContent = window.i18n.t(`status.${mode}`);
+    }
+    const chatStatus = document.querySelector('.chat-status [data-i18n]');
+    if (chatStatus && mode === 'implemented') {
+        chatStatus.setAttribute('data-i18n', 'chat.connected');
+        chatStatus.textContent = window.i18n.t('chat.connected');
+    }
+}
+
 function updateChatLanguage() {
     // Update chat placeholder
     const chatInput = document.getElementById('chatInput');
@@ -99,6 +117,7 @@ function initChat() {
     const chatMessages = document.getElementById('chatMessages');
     const clearBtn = document.getElementById('clearChat');
     const suggestions = document.querySelectorAll('.suggestion-btn');
+    let requestInFlight = false;
     
     if (!chatInput || !sendBtn) return;
     
@@ -136,7 +155,9 @@ function initChat() {
     
     function sendMessage() {
         const message = chatInput.value.trim();
-        if (!message) return;
+        if (!message || requestInFlight) return;
+        requestInFlight = true;
+        sendBtn.disabled = true;
         
         // Add user message
         addMessage(message, 'user');
@@ -160,8 +181,15 @@ function initChat() {
             })
             .catch(error => {
                 hideTypingIndicator();
-                addMessage('😅 Sorry, something went wrong. Please try again.', 'ai');
-                console.error('AI Error:', error);
+                const status = error?.status;
+                const key = ['rate_limited', 'provider_timeout', 'not_configured'].includes(status)
+                    ? `chat.error.${status}` : 'chat.error.provider_error';
+                addMessage(window.i18n.t(key), 'ai');
+                console.error('AI request failed:', status || 'provider_error');
+            })
+            .finally(() => {
+                requestInFlight = false;
+                sendBtn.disabled = false;
             });
     }
     
@@ -268,35 +296,33 @@ function initChat() {
    ============================================ */
 function initFeatureCards() {
     const cards = document.querySelectorAll('.feature-card');
-    
+
     cards.forEach(card => {
         card.addEventListener('click', () => {
             const tool = card.getAttribute('data-tool');
+            const declaredStatus = card.getAttribute('data-status');
+            const activation = window.resolveFeatureActivation(tool, declaredStatus);
+
+            // Fail closed if markup and runtime capability metadata disagree.
+            if (activation.reason === 'status_mismatch') {
+                console.error(`Feature status mismatch: ${tool}`);
+                return;
+            }
+
             scrollToChat();
-            
-            // Optional: pre-fill chat with tool-related message
+            if (activation.reason === 'unavailable') {
+                const chatInput = document.getElementById('chatInput');
+                if (chatInput) {
+                    chatInput.value = window.i18n.t('feature.unavailable.notice');
+                    chatInput.focus();
+                }
+                return;
+            }
+
+            // Chat is a declared demo; prefill a harmless demo greeting.
             const chatInput = document.getElementById('chatInput');
             if (chatInput) {
-                const lang = window.i18n.getLanguage();
-                const prompts = {
-                    ar: {
-                        chat: 'مرحبا! 👋',
-                        translate: 'ترجم: Hello World',
-                        summarize: 'لخص هذا النص: ...',
-                        code: 'ساعدني في كتابة كود...',
-                        image: 'صف هذه الصورة...',
-                        voice: 'حول هذا الصوت إلى نص...'
-                    },
-                    en: {
-                        chat: 'Hello! 👋',
-                        translate: 'Translate: مرحبا بالعالم',
-                        summarize: 'Summarize this text: ...',
-                        code: 'Help me write code...',
-                        image: 'Describe this image...',
-                        voice: 'Convert this audio to text...'
-                    }
-                };
-                chatInput.value = prompts[lang][tool] || prompts.en[tool];
+                chatInput.value = window.i18n.getLanguage() === 'ar' ? 'مرحبًا! 👋' : 'Hello! 👋';
                 chatInput.focus();
             }
         });

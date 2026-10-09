@@ -2,7 +2,8 @@
 
 > ذكاء اصطناعي سهل للجميع | AI made easy for everyone
 
-A modern, bilingual (Arabic/English) AI assistant web application with a beautiful dark theme —
+A modern bilingual (Arabic/English) chat interface with an optional, server-side text-model
+backend. Static hosting remains an explicit preset-response demo when no backend is configured —
 plus a **secure sync channel** that mirrors a scoped Google Drive folder into this repo and
 publishes it to the world through GitHub Pages.
 
@@ -13,12 +14,13 @@ publishes it to the world through GitHub Pages.
 
 ## ✨ Features
 
-- 🤖 **AI Chat** - Interactive chat interface with smart responses
+- 🤖 **Demo Chat** - Interactive bilingual UI with preset, simulated responses
 - 🌐 **Bilingual** - Full Arabic (RTL) and English (LTR) support
 - 🌙 **Dark Theme** - Beautiful modern dark design with animations
 - 📱 **Responsive** - Works on all devices
 - ⚡ **Fast** - Pure HTML/CSS/JS, no frameworks
 - 🎨 **Modern UI** - Glassmorphism, gradients, and smooth animations
+- 🧭 **Honest capability states** - Demo and unavailable features are labeled explicitly
 - 🔄 **Secure Sync Channel** - Hourly, sanitized Google Drive → repo → public dashboard
 
 ## 🔄 قناة المزامنة الآمنة · Secure Sync Channel
@@ -119,15 +121,23 @@ The app supports both **Arabic** and **English** with full RTL/LTR layout switch
 
 ## 🤖 AI Features (Demo)
 
-The current version includes a **demo AI engine** that simulates responses:
+The current version includes a **demo engine with preset responses**, not a connected AI model.
 
-- 💬 Smart conversations
-- 🌐 Translation assistance
-- 📝 Text summarization help
-- 💻 Coding assistance
-- 😄 Jokes & fun facts
+| Capability | Status | Current behavior |
+|---|---|---|
+| Language switching and responsive interface | `implemented` | Runs locally in the browser |
+| Text chat | `implemented` when the backend is configured; otherwise `demo` | Calls `POST /api/chat`; preset responses remain visibly separate fallback demo mode |
+| Demo greetings, jokes, and facts | `demo` | Uses intent matching, fixed responses, and a simulated delay only when no backend is active |
+| Translation | `unavailable` | Clearly reports that no translation service is connected |
+| Text summarization | `unavailable` | Clearly reports that no model is connected |
+| Coding assistance | `unavailable` | Clearly reports that no code-analysis service is connected |
+| Image description | `unavailable` | No image upload or analysis is implemented |
+| Speech to text | `unavailable` | Recording and transcription are not implemented |
 
-> **Note**: To connect to a real AI API (OpenAI, Anthropic, etc.), modify `js/ai.js`
+The optional backend keeps provider credentials on the server and implements bounded `GET /api/status`
+and `POST /api/chat` endpoints. See [docs/AI_BACKEND_DESIGN.md](docs/AI_BACKEND_DESIGN.md) for
+configuration, limitations, provider review, and local operation. **Never place provider API keys in
+browser JavaScript or HTML.** The repository intentionally contains no model credentials.
 
 ## 🎨 Customization
 

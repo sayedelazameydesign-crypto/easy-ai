@@ -88,7 +88,14 @@ jobs:
             echo "لا تغييرات في البيانات المنقّحة."
           else
             git commit -m "chore(sync): hourly sanitized data refresh [skip ci]"
-            git pull --rebase origin "$GITHUB_REF_NAME" || true
+            # Any fetch/rebase conflict is fatal: never publish from a stale or
+            # partially rebased checkout.
+            git fetch origin "$GITHUB_REF_NAME"
+            git rebase "origin/$GITHUB_REF_NAME"
+            test -z "$(git status --porcelain)" || {
+              echo "::error::Repository is not clean after rebase; refusing to push or publish."
+              exit 1
+            }
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
 

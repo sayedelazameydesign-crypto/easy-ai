@@ -22,9 +22,14 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install
         run: pip install -r requirements-dev.txt
-      - name: Tests
+      - name: Python tests
         run: python -m pytest -q
-      - name: Scan gate (data + site + config + docs)
-        run: python -m sync scan data site config docs README.md SECURITY.md --gate
+      - name: Interface translation tests
+        run: node --test tests-js/*.test.js
+      - name: Scan gate (backend, published data, interface, config, and docs)
+        run: python -m sync scan backend/*.py data site config docs js css tests-js index.html README.md SECURITY.md --gate
