@@ -1,6 +1,11 @@
 PY ?= python3
 
-.PHONY: install test scan doctor sync preview clean
+.PHONY: bootstrap install test scan doctor sync preview clean
+
+# One-shot environment setup on Debian/Ubuntu: OS tools + .venv + deps + checks.
+# Degrades gracefully when apt mirrors are unreachable (CI sandboxes).
+bootstrap:
+	bash scripts/setup-linux-dev.sh
 
 install:
 	$(PY) -m pip install -r requirements.txt -r requirements-dev.txt

@@ -28,6 +28,8 @@ h2{font-size:1.05rem;margin:28px 0 12px;color:var(--muted);font-weight:600}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
 .badge.ok .dot{background:var(--green)} .badge.warn .dot{background:var(--amber)}
 .badge.bad .dot{background:var(--red)}
+.badge.dim .dot{background:var(--muted)}
+.badge.dim span:last-child{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
 .card h3{margin:0 0 6px;font-size:.85rem;color:var(--muted);font-weight:600}
@@ -115,6 +117,11 @@ footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);
     <div id="m-hashes" class="small">—</div>
   </div>
 
+  <div class="card" id="last-good-card" style="margin-top:12px;display:none">
+    <h3>آخر تشغيل ناجح</h3>
+    <div class="small" id="m-last-good">—</div>
+  </div>
+
   <h2>الملفات المتزامنة</h2>
   <div id="files"><p class="empty">جارٍ التحميل…</p></div>
 
@@ -155,12 +162,20 @@ function fmtTime(iso){
   return d.toUTCString().replace("GMT","UTC");
 }
 
-const STATUS_LABELS = {
+// Null-prototype map + Object.hasOwn: a manifest can never reach Object.prototype
+// members through a crafted status string ("constructor", "__proto__", …).
+const STATUS_LABELS = Object.assign(Object.create(null), {
   ok:              {cls:"ok",   text:"متزامن"},
   not_configured:  {cls:"warn", text:"غير مُهيّأ"},
   blocked_scan:    {cls:"bad",  text:"محجوب بالفحص"},
   error:           {cls:"bad",  text:"خطأ جلب"},
-};
+  seeded:          {cls:"dim",  text:"بيانات أولية (لم تُسجَّل مزامنة ناجحة)"},
+  unknown:         {cls:"dim",  text:"غير معروف"},
+});
+function statusLabel(key){
+  return (typeof key === "string" && Object.hasOwn(STATUS_LABELS, key))
+    ? STATUS_LABELS[key] : null;
+}
 
 async function loadJson(url){
   try {
@@ -177,7 +192,7 @@ async function main(){
   // --- status badge: honest, manifest-driven only ---
   const badge = document.getElementById("status-badge");
   let statusKey = manifest && manifest.status;
-  let label = STATUS_LABELS[statusKey];
+  let label = statusLabel(statusKey);
   badge.querySelector("span:last-child").textContent = label ? label.text : "غير معروف";
   if (label) badge.classList.add(label.cls);
 
@@ -200,8 +215,34 @@ async function main(){
     const names = Object.keys(arts);
     if (!names.length) hashes.textContent = "لا قطع أثرية في هذا التشغيل (لم يُنشر محتوى).";
     for (const n of names){
-      hashes.appendChild(el("div", null, n + " · " + shortHash(arts[n].sha256) +
-        " · " + (arts[n].bytes ?? "?") + " B"));
+      const a = arts[n] || {};
+      // Provenance is part of the honesty rule: a preserved artifact is never
+      // presented as if this run had written it.
+      const origin = a.written === false
+        ? " · محفوظ من تشغيل سابق" + (a.run_id ? " (" + a.run_id + ")" : "")
+        : " · كُتب في هذا التشغيل";
+      hashes.appendChild(el("div", null, n + " · " + shortHash(a.sha256) +
+        " · " + (a.bytes ?? "?") + " B" + origin));
+    }
+
+    // --- last good run: only what the manifest actually recorded ---
+    const lg = manifest.last_good_run;
+    const lgCard = document.getElementById("last-good-card");
+    const lgBox = document.getElementById("m-last-good");
+    lgBox.textContent = "";
+    if (lg && typeof lg === "object"){
+      lgCard.style.display = "";
+      const lgLabel = statusLabel(lg.status);
+      const bits = [
+        "الحالة: " + (lgLabel ? lgLabel.text : (lg.status || "غير معروف")),
+        "رقم التشغيل: " + (lg.run_id || "—"),
+        "الوقت: " + fmtTime(lg.generated_at),
+        "الملفات: " + (lg.files ?? "—"),
+      ];
+      lgBox.appendChild(el("div", null, bits.join(" · ")));
+      if (lg.note) lgBox.appendChild(el("div", null, "ملاحظة الخادم: " + lg.note));
+    } else {
+      lgCard.style.display = "none";
     }
 
     if (manifest.missing && manifest.missing.length){
@@ -229,7 +270,7 @@ async function main(){
         const tr = el("tr");
         tr.appendChild(el("td", null, h.run_id));
         tr.appendChild(el("td", null, fmtTime(h.generated_at)));
-        const st = STATUS_LABELS[h.status];
+        const st = statusLabel(h.status);
         tr.appendChild(el("td", null, st ? st.text : (h.status || "غير معروف")));
         tr.appendChild(el("td", null, h.files ?? "—"));
         tbody.appendChild(tr);

@@ -43,6 +43,11 @@ Google Drive ──TLS/OAuth2──▶ GitHub Actions (كل ساعة)
 - **الحالات الصادقة**: `ok` / `not_configured` (أسماء النواقص فقط — لا قيم) /
   `error` (أكواد HTTP بلا أجسام) / `blocked_scan` (حجر المحتوى).
   اللوحة لا تُظهر «متزامن» إلا إذا قال الـmanifest ذلك — بلا حالات مُختلَقة.
+- **لا قطع أثرية متناقضة**: `data/latest.md` يُعاد كتابته في كل تشغيل ليطابق حالة
+  الـmanifest الحالية — حتى حين لا يُجلب شيء. كتالوج `data/files.json` السابق يبقى
+  محفوظًا بايت‑ببايت، ويُسجَّل في الـmanifest بـ`"written": false` مع بصمته ورقم
+  التشغيل الذي كتبه، فتظهر القائمة في اللوحة موسومة «محفوظ من تشغيل سابق».
+  البيانات الأولية المرفقة مع المستودع تُعرض كـ`seeded` لا كـ`ok`.
 - **التفعيل**: أضف الثلاثي `GOOGLE_DRIVE_REFRESH_TOKEN` + `GOOGLE_DRIVE_CLIENT_ID` +
   `GOOGLE_DRIVE_CLIENT_SECRET` في GitHub Secrets — الخطوات الكاملة في
   [docs/SETUP.md](docs/SETUP.md)، ونموذج التهديد في [SECURITY.md](SECURITY.md).
@@ -51,7 +56,7 @@ Google Drive ──TLS/OAuth2──▶ GitHub Actions (كل ساعة)
 
 ```bash
 make doctor    # فحص البيئة — بلا شبكة وبلا طباعة أي قيمة
-make sync      # مزامنة حقيقية        |  make test   # 47 اختبارًا
+make sync      # مزامنة حقيقية        |  make test   # 51 اختبارًا
 make scan      # بوابة الفحص           |  make preview # معاينة الصفحات
 ```
 
@@ -97,7 +102,7 @@ easy-ai/
 │   └── build_pages.py  # تجميع artifact النشر: الدردشة في / واللوحة في /sync/
 ├── data/               # المخرجات المنقّحة + manifest بالبصمات (تُلزم)
 ├── config/sync.yaml    # إعداد القناة (بلا أسرار)
-├── tests/              # 47 اختبارًا
+├── tests/              # 51 اختبارًا
 ├── docs/SETUP.md       # دليل الإعداد خطوة بخطوة
 ├── SECURITY.md         # نموذج التهديد والضوابط
 └── .github/workflows/  # sync.yml (ساعي + Pages) · ci.yml (اختبارات + بوابة فحص)
