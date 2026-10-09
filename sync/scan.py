@@ -45,8 +45,12 @@ RULE_MISSING_PATH = "missing_path"
 RULE_UNREADABLE_PATH = "unreadable_path"
 RULE_UNREADABLE_FILE = "unreadable_file"
 
+#: Never read as text: images, archives, fonts and compiled artifacts. A .pyc
+#: would otherwise surface as "undecodable_binary" and fail the gate on build
+#: output rather than on anything that could leak.
 _SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".pdf", ".zip",
-                  ".gz", ".bin", ".woff", ".woff2", ".ttf"}
+                  ".gz", ".bin", ".woff", ".woff2", ".ttf",
+                  ".pyc", ".pyo", ".class", ".so", ".dylib", ".dll", ".exe"}
 
 
 def scan_text(text: str) -> list[tuple[int, str]]:

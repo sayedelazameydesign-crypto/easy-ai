@@ -79,6 +79,14 @@ python -m sync scan data --gate    # بوابة الفحص (تفشل مُغلَ�
 make quality                       # lint + الاختبارات + البوابة + doctor، كما في CI
 ```
 
+واجهة الدردشة لها مسار تحقق مستقل (Node.js 18+، بلا متصفح):
+
+```bash
+make test-js                       # 58 اختبارًا، كل ملف في عملية مستقلة
+node --check js/main.js            # فحص صياغة لأي ملف على حدة
+make preview                       # الدردشة في / واللوحة في /sync/
+```
+
 ملاحظتان على البوابة:
 
 - مسار ناقص أو غير قابل للقراءة يُسجَّل (`missing_path` / `unreadable_path` /

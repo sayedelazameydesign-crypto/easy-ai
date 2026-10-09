@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
-<body>
+<body data-app-version="1.1.0">
     <!-- Animated Background -->
     <div class="bg-animation">
         <div class="gradient-orb orb-1"></div>
@@ -25,18 +25,20 @@
                 <span class="logo-icon">🤖</span>
                 <span class="logo-text" data-i18n="brand">Easy AI</span>
             </div>
-            <div class="nav-links">
+            <div class="nav-links" id="navLinks">
                 <a href="#home" class="nav-link active" data-i18n="nav.home">الرئيسية</a>
                 <a href="#chat" class="nav-link" data-i18n="nav.chat">المحادثة</a>
                 <a href="#tools" class="nav-link" data-i18n="nav.tools">الأدوات</a>
                 <a href="#about" class="nav-link" data-i18n="nav.about">عن المشروع</a>
             </div>
             <div class="nav-actions">
-                <button class="lang-toggle" id="langToggle" title="Switch Language">
+                <button class="lang-toggle" id="langToggle" type="button"
+                        aria-label="تبديل اللغة (Ctrl+Shift+L)" title="تبديل اللغة (Ctrl+Shift+L)">
                     <span class="lang-icon">🌐</span>
                     <span id="langLabel">EN</span>
                 </button>
-                <button class="menu-toggle" id="menuToggle">☰</button>
+                <button class="menu-toggle" id="menuToggle" type="button"
+                        aria-label="القائمة" aria-expanded="false" aria-controls="navLinks">☰</button>
             </div>
         </div>
     </nav>
@@ -142,16 +144,23 @@
                 <div class="chat-avatar">🤖</div>
                 <div class="chat-info">
                     <span class="chat-name">Easy AI</span>
-                    <span class="chat-status">
-                        <span class="status-dot"></span>
-                        <span data-i18n="chat.online">متصل الآن</span>
+                    <span class="chat-status chat-status--demo"
+                          data-i18n-title="chat.demo.title"
+                          title="لا يوجد مزوّد ذكاء اصطناعي متصل في هذه النسخة — كل الردود قوالب محلية داخل متصفحك، ولا يغادر أي شيء جهازك.">
+                        <span class="status-dot" aria-hidden="true"></span>
+                        <span data-i18n="chat.demo">وضع تجريبي · ردود محلية</span>
                     </span>
                 </div>
                 <div class="chat-tools">
-                    <button class="tool-btn" id="clearChat" title="Clear">🗑️</button>
+                    <button class="tool-btn" id="clearChat" type="button"
+                            aria-label="مسح المحادثة" data-i18n-aria-label="chat.clear"
+                            data-i18n-title="chat.clear" title="مسح المحادثة">🗑️</button>
                 </div>
             </div>
-            <div class="chat-messages" id="chatMessages">
+            <div class="chat-messages" id="chatMessages" role="log"
+                 aria-live="polite" aria-relevant="additions"
+                 aria-label="سجل رسائل المحادثة" data-i18n-aria-label="chat.messageLog"
+                 tabindex="0">
                 <div class="message ai-message">
                     <div class="message-avatar">🤖</div>
                     <div class="message-content">
@@ -161,24 +170,36 @@
                 </div>
             </div>
             <div class="chat-suggestions" id="chatSuggestions">
-                <button class="suggestion-btn" data-suggestion="hello" data-i18n="suggestions.hello">👋 قل مرحباً</button>
-                <button class="suggestion-btn" data-suggestion="help" data-i18n="suggestions.help">🆘 ما الذي يمكنك فعله؟</button>
-                <button class="suggestion-btn" data-suggestion="joke" data-i18n="suggestions.joke">😄 أخبرني نكتة</button>
-                <button class="suggestion-btn" data-suggestion="fact" data-i18n="suggestions.fact">🧠 autonomie un fait intéressant</button>
+                <button class="suggestion-btn" type="button" data-suggestion="hello" data-i18n="suggestions.hello">👋 قل مرحباً</button>
+                <button class="suggestion-btn" type="button" data-suggestion="help" data-i18n="suggestions.help">🆘 ما الذي يمكنك فعله؟</button>
+                <button class="suggestion-btn" type="button" data-suggestion="joke" data-i18n="suggestions.joke">😄 أخبرني نكتة</button>
+                <button class="suggestion-btn" type="button" data-suggestion="fact" data-i18n="suggestions.fact">🧠 أخبرني معلومة ممتعة</button>
             </div>
             <div class="chat-input-container">
-                <button class="input-tool-btn" id="attachBtn" title="Attach">📎</button>
+                <button class="input-tool-btn" id="attachBtn" type="button" disabled
+                        aria-disabled="true" aria-label="إرفاق ملف" data-i18n-aria-label="chat.attach"
+                        data-i18n-title="chat.notImplemented"
+                        title="هذه الأداة غير مفعّلة في هذه النسخة التجريبية.">📎</button>
                 <textarea
                     id="chatInput"
                     class="chat-input"
                     placeholder="اكتب رسالتك هنا..."
                     data-i18n-placeholder="chat.placeholder"
+                    aria-label="اكتب رسالتك هنا..."
+                    data-i18n-aria-label="chat.placeholder"
                     rows="1"
                 ></textarea>
-                <button class="input-tool-btn" id="voiceBtn" title="Voice">🎤</button>
-                <button class="send-btn" id="sendBtn">
-                    <span class="send-icon">➤</span>
+                <button class="input-tool-btn" id="voiceBtn" type="button" disabled
+                        aria-disabled="true" aria-label="إدخال صوتي" data-i18n-aria-label="chat.voice"
+                        data-i18n-title="chat.notImplemented"
+                        title="هذه الأداة غير مفعّلة في هذه النسخة التجريبية.">🎤</button>
+                <button class="send-btn" id="sendBtn" type="button"
+                        aria-label="إرسال" data-i18n-aria-label="chat.send">
+                    <span class="send-icon" aria-hidden="true">➤</span>
                 </button>
+
+                <!-- Transient status lines: cleared / cancelled / restored. -->
+                <span class="sr-only" id="chatLive" role="status" aria-live="polite"></span>
             </div>
         </div>
     </section>
@@ -278,6 +299,8 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/chat-store.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/main.js"></script>

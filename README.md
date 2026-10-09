@@ -13,12 +13,15 @@ publishes it to the world through GitHub Pages.
 
 ## ✨ Features
 
-- 🤖 **AI Chat** - Interactive chat interface with smart responses
+- 🤖 **AI Chat (demo)** - Interactive bilingual chat, clearly labelled as a local
+  demo: canned responses, no provider, nothing leaves the browser
 - 🌐 **Bilingual** - Full Arabic (RTL) and English (LTR) support
 - 🌙 **Dark Theme** - Beautiful modern dark design with animations
 - 📱 **Responsive** - Works on all devices
 - ⚡ **Fast** - Pure HTML/CSS/JS, no frameworks
 - 🎨 **Modern UI** - Glassmorphism, gradients, and smooth animations
+- 💾 **Conversation persistence** - The chat survives a reload (100 messages /
+  20,000 characters per message), and degrades honestly when storage is blocked
 - 🔄 **Secure Sync Channel** - Hourly, sanitized Google Drive → repo → public dashboard
 
 ## 🔄 قناة المزامنة الآمنة · Secure Sync Channel
@@ -57,7 +60,7 @@ Google Drive ──TLS/OAuth2──▶ GitHub Actions (كل ساعة)
 ```bash
 make bootstrap # تهيئة البيئة مرة واحدة (أدوات + .venv + اعتماديات + فحوص)
 make doctor    # فحص البيئة — بلا شبكة وبلا طباعة أي قيمة
-make sync      # مزامنة حقيقية        |  make test   # 118 اختبارًا
+make sync      # مزامنة حقيقية        |  make test   # 118 اختبار بايثون + 58 اختبار JS
 make scan      # بوابة الفحص           |  make lint   # ruff (قواعده في pyproject.toml)
 make quality   # lint + tests + scan + doctor، كما يفعل CI
 make preview   # معاينة الصفحات (الدردشة في / واللوحة في /sync/)
@@ -67,7 +70,7 @@ make preview   # معاينة الصفحات (الدردشة في / واللوح
 
 - **HTML5** - Semantic structure
 - **CSS3** - Modern styling with CSS Variables
-- **JavaScript (ES6+)** - Vanilla JS, no frameworks
+- **JavaScript (ES6+)** - Vanilla JS, no frameworks (tested with `node:test`)
 - **Python 3.11** - Sync pipeline (requests, cryptography, PyYAML)
 - **GitHub Actions** - Hourly schedule, least-privilege permissions, Pages deploy
 - **Google Fonts** - Cairo (Arabic) & Inter (English)
@@ -96,8 +99,10 @@ easy-ai/
 ├── css/
 │   └── style.css       # Dark theme styles (RTL/LTR)
 ├── js/
+│   ├── storage.js      # حارس localStorage — يتدهور إلى الذاكرة بلا استثناء
+│   ├── chat-store.js   # حفظ المحادثة (حد 100 رسالة / 20٬000 حرف)
 │   ├── i18n.js         # Internationalization (AR/EN)
-│   ├── ai.js           # AI engine (demo responses)
+│   ├── ai.js           # محرك الردود التجريبي (قوالب محلية)
 │   └── main.js         # App logic & interactions
 ├── sync/               # قناة المزامنة: drive, redact, crypto, scan, store, pipeline
 ├── site/               # لوحة المزامنة العامة (تُنشر تحت /sync/)
@@ -106,7 +111,8 @@ easy-ai/
 │   └── setup-linux-dev.sh  # تهيئة بيئة Debian/Ubuntu (make bootstrap)
 ├── data/               # المخرجات المنقّحة + manifest بالبصمات (تُلزم)
 ├── config/sync.yaml    # إعداد القناة (بلا أسرار)
-├── tests/              # 118 اختبارًا
+├── tests/              # 118 اختبار بايثون (قناة المزامنة)
+├── tests-js/           # 58 اختبار JS (الدردشة: node:test بلا متصفح)
 ├── docs/SETUP.md       # دليل الإعداد خطوة بخطوة
 ├── SECURITY.md         # نموذج التهديد والضوابط
 ├── pyproject.toml      # قواعد ruff + إعداد pytest (مصدر واحد محليًا وفي CI)
@@ -118,26 +124,48 @@ easy-ai/
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl/Cmd + K` | Focus chat input |
-| `Ctrl/Cmd + L` | Toggle language |
+| `Ctrl/Cmd + Shift + L` | Toggle language |
+| `Escape` | Cancel the reply in flight |
+
+`Ctrl/Cmd + L` is deliberately **not** bound: it focuses the browser's address
+bar (and opens an AI sidebar in some browsers), and hijacking it with
+`preventDefault()` took a browser-level shortcut away from the user.
 
 ## 🌐 Language Support
 
 The app supports both **Arabic** and **English** with full RTL/LTR layout switching:
 
 - Click the 🌐 button in the navbar to switch languages
-- Language preference is saved in localStorage
+- Language preference is saved in localStorage — through a guarded wrapper, so a
+  browser that blocks storage (private mode, opaque origin) still renders the
+  page and simply does not remember the choice
 
 ## 🤖 AI Features (Demo)
 
-The current version includes a **demo AI engine** that simulates responses:
+The current version includes a **demo AI engine**: an intent matcher over Arabic
+and English patterns, answered from i18n templates after a simulated delay.
+There is no model and no network call behind it — the chat header says
+"demo mode" rather than "online" for exactly that reason.
 
-- 💬 Smart conversations
-- 🌐 Translation assistance
-- 📝 Text summarization help
-- 💻 Coding assistance
+- 💬 Greetings, help, thanks, goodbye
 - 😄 Jokes & fun facts
+- 💻 Coding and 🌐 translation prompts (answered from the message text)
 
-> **Note**: To connect to a real AI API (OpenAI, Anthropic, etc.), modify `js/ai.js`
+Guarantees that `tests-js/` pins down:
+
+- Every intent the matcher can return is answerable — a plural/singular key
+  mismatch once made five of ten intents (including joke and fact) silently fall
+  through to the default reply.
+- Chat text reaches the DOM through `textContent`/`createElement` only.
+- A reply in flight can be cancelled, and a reply that resolves after the user
+  cleared the conversation is dropped instead of appended.
+- Every string in the Arabic table is Arabic (plus brand names): a scan over all
+  chat sources rejects unexpected scripts, after fragments of French, Spanish,
+  Italian, Russian, Chinese and Japanese were found spliced into the UI text.
+
+> **Note**: To connect to a real AI API (OpenAI, Anthropic, etc.), modify
+> `js/ai.js` — and change `chat.demo` to `chat.provider` in the header, so the
+> UI keeps telling the truth about what is behind it.
 
 ## 🎨 Customization
 
