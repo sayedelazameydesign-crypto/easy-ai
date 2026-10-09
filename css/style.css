@@ -629,6 +629,18 @@ section {
     border-radius: 50%;
 }
 
+/* Demo state: amber, not the green "connected" dot. The chat has no provider
+   behind it, and the colour must not claim otherwise. */
+.chat-status--demo .status-dot {
+    background: var(--warning);
+    box-shadow: none;
+    animation: none;
+}
+
+.chat-status--demo {
+    cursor: help;
+}
+
 .tool-btn {
     background: none;
     border: none;
@@ -741,6 +753,10 @@ section {
 
 .message-content p {
     margin-bottom: 0.25rem;
+    /* Replies are built with textContent, so their line breaks are literal
+       newline characters: preserve them or a multi-line answer collapses. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .message-time {
@@ -1150,3 +1166,50 @@ section {
 ::selection {
     background: var(--accent-primary);
     color: white;
+
+/* ============================================
+   Chat UI states & accessibility helpers
+   ============================================ */
+
+/* Visually hidden but available to assistive technology. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Send button while a reply is in flight: it is now a stop button. */
+.send-btn.is-stop {
+    background: var(--warning);
+    color: #1a1a2e;
+}
+
+.send-btn.is-stop .send-icon {
+    font-size: 0.9rem;
+}
+
+/* Disabled tool buttons stay visibly inactive instead of faking a click. */
+.input-tool-btn:disabled,
+.tool-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.input-tool-btn:disabled:hover,
+.tool-btn:disabled:hover {
+    opacity: 0.35;
+    transform: none;
+}
+
+/* The log is focusable for keyboard scrolling; keep the ring subtle. */
+.chat-messages:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: -2px;
+}

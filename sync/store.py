@@ -14,14 +14,14 @@ from __future__ import annotations
 import hashlib
 import json
 import pathlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 GENERATOR = "easy-ai-sync/1.0.0"
 SCHEMA = 1
 
 
 def utcnow_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def sha256_file(path: pathlib.Path) -> str:
@@ -38,24 +38,55 @@ def _write_json(path: pathlib.Path, payload: dict) -> None:
                     encoding="utf-8")
 
 
-def _digest_markdown(files_payload: dict, manifest_base: dict) -> str:
+def _load_published_files(data_dir: pathlib.Path) -> dict | None:
+    """Return the already-published ``files.json`` payload, or None.
+
+    Used when the current run published no content (``not_configured`` /
+    ``error``): the catalog is preserved, so the digest can still list it —
+    clearly labelled as coming from an earlier run.
+    """
+    path = data_dir / "files.json"
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _digest_markdown(files_payload: dict | None, manifest_base: dict,
+                     preserved_from: dict | None = None) -> str:
     status = manifest_base["status"]
-    counts = manifest_base["counts"]
+    counts = manifest_base.get("counts") or {}
     lines = [
         "# آخر مزامنة — قناة easy-ai",
         "",
         f"- الحالة: **{status}**",
         f"- وقت التشغيل: {manifest_base['generated_at']} (UTC)",
         f"- رقم التشغيل: `{manifest_base['run_id']}`",
-        f"- الملفات: {counts['files']} — بمحتوى: {counts['with_content']} "
-        f"— تعديلات تحريرية (redactions): {counts['redactions']}",
+        # .get with an em dash: a missing count is shown as unknown, never as 0.
+        f"- الملفات: {counts.get('files', '—')} — بمحتوى: {counts.get('with_content', '—')} "
+        f"— تعديلات تحريرية (redactions): {counts.get('redactions', '—')}",
     ]
     if manifest_base.get("missing"):
         lines.append(f"- متغيرات ناقصة (أسماء فقط): {', '.join(manifest_base['missing'])}")
     if manifest_base.get("scan_findings"):
         lines.append(f"- نتائج بوابة الفحص: {len(manifest_base['scan_findings'])} "
                      "(المحتوى محجوب حتى الإصلاح)")
+
     files = files_payload.get("files", []) if files_payload else []
+    if preserved_from is not None:
+        # Nothing was fetched this run; the listing below is the preserved one.
+        prev_run = preserved_from.get("run_id") or "غير معروف"
+        prev_at = preserved_from.get("generated_at") or "غير معروف"
+        lines.append(
+            f"- هذا التشغيل لم يجلب محتوى؛ قائمة الملفات أدناه محفوظة من تشغيل سابق "
+            f"(`{prev_run}` — {prev_at} UTC) وبقيت كما هي بلا تعديل."
+        )
+    elif not files:
+        lines.append("- لا يوجد محتوى منشور من هذا التشغيل (لم يُكتب `files.json`).")
+
     if files:
         lines += ["", "## الملفات", ""]
         for i, f in enumerate(files, 1):
@@ -80,9 +111,16 @@ def write_run(data_dir: pathlib.Path, *, run_id: str, status: str,
               keep_runs: int = 100) -> dict:
     """Write one run's artifacts and return the manifest that was written.
 
-    When ``files_payload`` is None (not_configured / error / blocked runs),
-    existing files.json and latest.md are left untouched — the dashboard keeps
-    showing the last good data, with the new honest status on top.
+    ``latest.md`` is ALWAYS rewritten to match this run's honest status — even
+    when nothing was fetched — so the two public artifacts can never disagree
+    (a stale ``ok`` digest sitting next to a ``not_configured`` manifest is
+    exactly the kind of invented state this channel refuses to publish).
+
+    When ``files_payload`` is None (not_configured / error runs) the existing
+    ``files.json`` is left byte-for-byte untouched: the dashboard keeps showing
+    the last good catalog, labelled as preserved. The manifest then reports it
+    with ``"written": false`` and carries its checksum and originating run_id,
+    so a reader can verify the catalog was not silently rewritten.
     """
     data_dir.mkdir(parents=True, exist_ok=True)
     generated_at = utcnow_iso()
@@ -104,19 +142,36 @@ def write_run(data_dir: pathlib.Path, *, run_id: str, status: str,
     files_path = data_dir / "files.json"
     latest_path = data_dir / "latest.md"
 
+    preserved_from = None
     if files_payload is not None:
         files_payload = {**files_payload, "schema": SCHEMA, "generated_at": generated_at,
                          "run_id": run_id, "status": status}
         _write_json(files_path, files_payload)
-        latest_md = _digest_markdown(files_payload, manifest_base)
-        latest_path.parent.mkdir(parents=True, exist_ok=True)
-        latest_path.write_text(latest_md, encoding="utf-8")
-        manifest_base["artifacts"] = {
-            "files.json": {"sha256": sha256_file(files_path),
-                           "bytes": files_path.stat().st_size},
-            "latest.md": {"sha256": sha256_file(latest_path),
-                          "bytes": latest_path.stat().st_size},
+        digest_files = files_payload
+    else:
+        digest_files = _load_published_files(data_dir)
+        if digest_files is not None:
+            preserved_from = digest_files
+
+    latest_md = _digest_markdown(digest_files, manifest_base, preserved_from=preserved_from)
+    latest_path.parent.mkdir(parents=True, exist_ok=True)
+    latest_path.write_text(latest_md, encoding="utf-8")
+
+    artifacts: dict[str, dict] = {}
+    if files_path.exists():
+        artifacts["files.json"] = {
+            "sha256": sha256_file(files_path),
+            "bytes": files_path.stat().st_size,
+            # Honest provenance: written by this run, or preserved from an
+            # earlier one (never claimed as fresh when it is not).
+            "written": files_payload is not None,
+            "run_id": run_id if files_payload is not None
+                      else (preserved_from or {}).get("run_id"),
         }
+    artifacts["latest.md"] = {"sha256": sha256_file(latest_path),
+                              "bytes": latest_path.stat().st_size,
+                              "written": True, "run_id": run_id}
+    manifest_base["artifacts"] = artifacts
 
     manifest_path = data_dir / "manifest.json"
     history: list[dict] = []
@@ -141,9 +196,16 @@ def write_run(data_dir: pathlib.Path, *, run_id: str, status: str,
 
 
 def _last_good(history: list[dict], files_path: pathlib.Path) -> dict | None:
+    """Last run that really reported ``ok`` — never an invented one.
+
+    A repo that shipped with seeded ``data/`` and no successful run in history
+    is reported as ``seeded`` with an explicit note, so no reader (or the
+    dashboard) can mistake pre-packaged data for a verified sync.
+    """
     for entry in reversed(history):
         if entry.get("status") == "ok":
             return entry
     if files_path.exists():
-        return {"run_id": "seeded", "generated_at": "", "status": "ok", "files": None}
+        return {"run_id": "seeded", "generated_at": "", "status": "seeded", "files": None,
+                "note": "shipped with the repository — no successful sync run recorded yet"}
     return None

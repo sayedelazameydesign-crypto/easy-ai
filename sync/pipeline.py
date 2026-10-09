@@ -11,15 +11,15 @@ Statuses (the dashboard shows them verbatim; nothing is ever dressed up):
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import pathlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
-from .config import (NotConfiguredError, SyncConfig, collect_secret_values,
-                     drive_credentials)
+from .config import NotConfiguredError, SyncConfig, collect_secret_values, drive_credentials
 from .crypto import vault_encrypt
 from .drive import DriveClient, DriveError
 from .redact import Redactor
@@ -28,7 +28,7 @@ from .store import write_run
 
 
 def run_id_now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
 def _counts_from(records: list[dict], redactions: int) -> dict:
@@ -50,10 +50,8 @@ def _write_vault(cfg: SyncConfig, source: str, run_id: str, raw: dict) -> str | 
     # retention: keep only the newest cfg.vault_retention snapshots
     snapshots = sorted(vault_dir.glob("snapshot-*.bin"))
     for old in snapshots[: max(0, len(snapshots) - cfg.vault_retention)]:
-        try:
+        with contextlib.suppress(OSError):
             old.unlink()
-        except OSError:
-            pass
     return str(path)
 
 
@@ -72,7 +70,6 @@ def run(*, cache_path: str | os.PathLike | None = None,
     status = "ok"
     missing: list[str] = []
     notes: list[str] = []
-    scan_findings: list[dict] = []
     raw: dict | None = None
     records: list[dict] = []
     source_info = {"type": "google-drive", "credential_mode": "none", "folder_id": None,
@@ -169,20 +166,18 @@ def run(*, cache_path: str | os.PathLike | None = None,
             # Quarantine: remove the content artifacts, republish an honest
             # manifest. Findings carry path/line/rule only — never the match.
             for name in ("files.json", "latest.md"):
-                try:
+                with contextlib.suppress(OSError):
                     (data_dir / name).unlink()
-                except OSError:
-                    pass
             manifest = write_run(
                 data_dir, run_id=run_id, status="blocked_scan",
                 files_payload=None, source_info=source_info, counts=counts,
                 missing=missing, scan_findings=findings,
-                notes=notes + ["scan gate blocked publication; content quarantined"],
+                notes=[*notes, "scan gate blocked publication; content quarantined"],
                 keep_runs=cfg.keep_runs,
             )
             status = "blocked_scan"
 
-    summary = {
+    return {
         "run_id": run_id,
         "status": status,
         "counts": counts,
@@ -192,4 +187,3 @@ def run(*, cache_path: str | os.PathLike | None = None,
         "dry_run": dry_run,
         "data_dir": str(data_dir),
     }
-    return summary

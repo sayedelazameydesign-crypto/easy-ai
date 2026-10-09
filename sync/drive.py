@@ -13,18 +13,27 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from urllib.parse import urlsplit
 
 import requests
 
-from .config import NotConfiguredError, SyncConfig, drive_credentials
+from .config import SyncConfig, drive_credentials
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 DRIVE_BASE = "https://www.googleapis.com/drive/v3"
 DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly"
 JWT_BEARER_GRANT = "urn:ietf:params:oauth:grant-type:jwt-bearer"
+
+#: Hosts a service-account assertion may ever be POSTed to. The ``token_uri``
+#: field lives *inside* the GOOGLE_SERVICE_ACCOUNT_JSON secret, so whoever can
+#: edit that secret could otherwise aim the signed assertion — and with it the
+#: client_email — at an arbitrary host. Pinned to Google, HTTPS, /token.
+SA_TOKEN_HOSTS = frozenset({"oauth2.googleapis.com", "www.googleapis.com"})
+SA_TOKEN_PATH = "/token"
 
 #: Google Workspace mimes we can export as text, and the export target mime.
 GOOGLE_MIME_EXPORT = {
@@ -36,6 +45,9 @@ FOLDER_MIME = "application/vnd.google-apps.folder"
 LIST_FIELDS = "nextPageToken,files(id,name,mimeType,modifiedTime,size,webViewLink,description)"
 _TIMEOUT = 20
 
+#: Drive ids are opaque URL-safe tokens; anything else never reaches a URL path.
+_SAFE_ID = re.compile(r"[A-Za-z0-9_-]{1,128}")
+
 
 class DriveError(RuntimeError):
     """Drive failure with a *safe* message: HTTP status only, never a body."""
@@ -46,7 +58,38 @@ def _b64url(raw: bytes) -> str:
 
 
 def _utcnow_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _as_text(value: object) -> str:
+    """Coerce a listing field to text; anything non-string becomes ""."""
+    return value if isinstance(value, str) else ""
+
+
+def _check_token_uri(uri: object) -> str:
+    """Return *uri* only if it is Google's own HTTPS token endpoint.
+
+    The rejection message reports scheme and host only — never a full URL,
+    never a query string, never anything from the service-account JSON.
+    """
+    if not isinstance(uri, str) or not uri.strip():
+        raise DriveError("service account token_uri is not a usable URL")
+    parts = urlsplit(uri.strip())
+    host = (parts.hostname or "").lower()
+    # An explicit port, a query string or a fragment are all smuggling vectors:
+    # the pinned endpoint needs none of them, so any of them is a refusal.
+    if (parts.scheme != "https"
+            or host not in SA_TOKEN_HOSTS
+            or parts.path != SA_TOKEN_PATH
+            or parts.port is not None
+            or parts.query
+            or parts.fragment):
+        raise DriveError(
+            "service account token_uri is not an approved Google token endpoint "
+            f"(got scheme={parts.scheme or 'none'} host={host or 'none'}); refusing to send "
+            "a signed assertion to it"
+        )
+    return uri.strip()
 
 
 @dataclass
@@ -85,8 +128,7 @@ class DriveClient:
             # No body in the message: invalid_grant vs revoked must not be
             # guessable from a leaked log line.
             raise DriveError(f"token refresh failed (HTTP {resp.status_code})")
-        token = self._parse_token(resp)
-        return token
+        return self._parse_token(resp)
 
     def _service_account_token(self) -> str:
         from cryptography.hazmat.primitives import hashes, serialization
@@ -95,16 +137,24 @@ class DriveClient:
         try:
             sa = json.loads(self.env["GOOGLE_SERVICE_ACCOUNT_JSON"])
         except (json.JSONDecodeError, TypeError):
-            raise DriveError("GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON")
+            raise DriveError("GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON") from None
+        if not isinstance(sa, dict):
+            raise DriveError("GOOGLE_SERVICE_ACCOUNT_JSON must be a JSON object")
         for field_name in ("client_email", "private_key", "token_uri"):
-            if not sa.get(field_name):
+            value = sa.get(field_name)
+            # Whitespace-only counts as missing: a blank field is never a
+            # credential, and treating it as one only produces a confusing error.
+            if not isinstance(value, str) or not value.strip():
                 raise DriveError(f"service account JSON missing field: {field_name}")
+        # Pin the destination BEFORE anything is signed: a tampered secret must
+        # not be able to redirect the assertion.
+        token_uri = _check_token_uri(sa["token_uri"])
         now = int(time.time())
         header = _b64url(json.dumps({"alg": "RS256", "typ": "JWT"}).encode())
         claims = _b64url(json.dumps({
             "iss": sa["client_email"],
             "scope": DRIVE_SCOPE,
-            "aud": sa["token_uri"],
+            "aud": token_uri,
             "iat": now,
             "exp": now + 3600,
         }).encode())
@@ -113,10 +163,13 @@ class DriveClient:
             key = serialization.load_pem_private_key(sa["private_key"].encode(), password=None)
             signature = key.sign(signing_input, padding.PKCS1v15(), hashes.SHA256())
         except Exception:
-            raise DriveError("service account private_key could not be used for signing")
+            # Cryptography's messages can embed key material details — swallow
+            # them and raise our own body-free message.
+            raise DriveError(
+                "service account private_key could not be used for signing") from None
         assertion = signing_input.decode("ascii") + "." + _b64url(signature)
         resp = self.session.post(
-            sa["token_uri"],
+            token_uri,
             data={"grant_type": JWT_BEARER_GRANT, "assertion": assertion},
             timeout=_TIMEOUT,
         )
@@ -126,11 +179,20 @@ class DriveClient:
 
     @staticmethod
     def _parse_token(resp: requests.Response) -> str:
+        """Extract the access token, refusing any unexpected response shape.
+
+        A malformed body must surface as a DriveError (which the pipeline turns
+        into an honest ``error`` status) — never as an AttributeError carrying
+        fragments of the response.
+        """
         try:
-            token = resp.json().get("access_token")
+            payload = resp.json()
         except ValueError:
-            token = None
-        if not token:
+            raise DriveError("token endpoint returned a non-JSON body") from None
+        if not isinstance(payload, dict):
+            raise DriveError("token endpoint returned an unexpected JSON shape")
+        token = payload.get("access_token")
+        if not isinstance(token, str) or not token.strip():
             raise DriveError("token endpoint returned no access_token")
         return token
 
@@ -171,10 +233,20 @@ class DriveClient:
             try:
                 payload = resp.json()
             except ValueError:
-                raise DriveError("drive list returned a non-JSON body")
-            files.extend(payload.get("files", []))
+                raise DriveError("drive list returned a non-JSON body") from None
+            if not isinstance(payload, dict):
+                raise DriveError("drive list returned an unexpected JSON shape")
+            listed = payload.get("files")
+            if listed is not None and not isinstance(listed, list):
+                raise DriveError("drive list returned a non-list `files` field")
+            for item in listed or []:
+                # Silently dropping a malformed entry would hide a truncated or
+                # tampered response; the run reports `error` instead.
+                if not isinstance(item, dict):
+                    raise DriveError("drive list returned a malformed file entry")
+                files.append(item)
             page_token = payload.get("nextPageToken")
-            if not page_token:
+            if not isinstance(page_token, str) or not page_token:
                 break
         return files[: cfg.max_files]
 
@@ -208,6 +280,12 @@ class DriveClient:
         file_id = meta.get("id", "")
         if mime == FOLDER_MIME:
             return "folder", None, None
+        # The id is interpolated into a URL path: only a plain Drive id may get
+        # there, otherwise a crafted listing could point the request elsewhere.
+        if not isinstance(file_id, str) or not _SAFE_ID.fullmatch(file_id):
+            return "error", None, "skipped: unusable file id"
+        if not isinstance(mime, str):
+            mime = ""
         size = meta.get("size")
         try:
             size_int = int(size) if size is not None else None
@@ -261,13 +339,13 @@ class DriveClient:
             except (TypeError, ValueError):
                 size_bytes = None
             records.append({
-                "id": meta.get("id", ""),
-                "name": meta.get("name", ""),
-                "mime_type": meta.get("mimeType", ""),
-                "modified_time": meta.get("modifiedTime", ""),
+                "id": _as_text(meta.get("id")),
+                "name": _as_text(meta.get("name")),
+                "mime_type": _as_text(meta.get("mimeType")),
+                "modified_time": _as_text(meta.get("modifiedTime")),
                 "size_bytes": size_bytes,
-                "web_view_link": meta.get("webViewLink", ""),
-                "description": meta.get("description") or "",
+                "web_view_link": _as_text(meta.get("webViewLink")),
+                "description": _as_text(meta.get("description")),
                 "content_state": state,
                 "content": content,
                 "fetch_error": err,

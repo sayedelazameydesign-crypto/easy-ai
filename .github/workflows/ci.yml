@@ -12,6 +12,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "22"
+
 jobs:
   test-and-scan:
     runs-on: ubuntu-latest
@@ -20,11 +24,55 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install
+        run: pip install -r requirements-dev.txt
+      - name: Tests (sync channel, pytest)
+        run: make test-py
+      # Front-end suites run one file per process — see scripts/run-js-tests.cjs.
+      - name: Tests (chat UI, node:test)
+        run: make test-js
+      # One source of truth for the scanned surfaces: SCAN_PATHS in the Makefile,
+      # so CI and a local `make scan` can never drift apart.
+      - name: Scan gate
+        run: make scan
+
+  # Separate job on purpose: a style failure must never be able to mask the
+  # test/scan result, and the security gate above stays exactly as it was.
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
       - name: Install
         run: pip install -r requirements-dev.txt
-      - name: Tests
-        run: python -m pytest -q
-      - name: Scan gate (data + site + config + docs)
-        run: python -m sync scan data site config docs README.md SECURITY.md --gate
+      - name: Ruff (rules pinned in pyproject.toml)
+        run: ruff check .
+      # Installed straight from the runner's apt archive instead of a third-party
+      # action: the flags are then explicit, and the job has no action input to
+      # drift out of sync with the tool's real interface.
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends shellcheck
+          shellcheck --version | head -3
+      - name: ShellCheck (scripts/)
+        run: |
+          # --external-sources: setup-linux-dev.sh sources /etc/os-release.
+          # severity=warning: real defects fail the build, style notes do not.
+          shellcheck --external-sources --severity=warning scripts/*.sh
+      - name: Bash syntax
+        run: bash -n scripts/setup-linux-dev.sh
+      - name: JS syntax (every browser and test file)
+        run: |
+          for f in js/*.js tests-js/*.cjs scripts/*.cjs; do
+            node --check "$f" || exit 1
+          done

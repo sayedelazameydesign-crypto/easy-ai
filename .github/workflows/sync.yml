@@ -76,7 +76,9 @@ jobs:
           fi
 
       - name: Scan gate (دفاع ثانٍ على data/ قبل الدفع)
-        run: python -m sync scan data --gate
+        # نفس قائمة الأسطح المعرّفة مرة واحدة في Makefile (SCAN_PATHS) — لا انجراف
+        # بين CI الفاحص وCI الناشر. البوابة تفشل مُغلَقة عند أي مسار غير مقروء.
+        run: make scan
 
       - name: Commit sanitized data
         if: inputs.dry_run != true

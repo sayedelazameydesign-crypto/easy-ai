@@ -98,9 +98,73 @@ def test_not_configured_preserves_previous_and_lists_names(tmp_path, cfg):
     manifest = json.loads((tmp_path / "data" / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "not_configured"
     assert manifest["missing"] == summary["missing"]
-    # previous good artifacts preserved untouched
+    # previous good catalog preserved untouched
     assert (tmp_path / "data" / "files.json").read_text(encoding="utf-8") == good_files
     assert manifest["last_good_run"] is not None
+    # ...and the manifest says so instead of implying this run wrote it
+    assert manifest["artifacts"]["files.json"]["written"] is False
+    assert manifest["artifacts"]["files.json"]["sha256"]          # preserved, still checksummed
+    assert manifest["artifacts"]["latest.md"]["written"] is True
+
+
+def test_not_configured_digest_never_keeps_a_stale_ok(tmp_path, cfg):
+    """latest.md must report the CURRENT run, not the last successful one.
+
+    Regression: a preserved `ok` digest sitting next to a `not_configured`
+    manifest made the public data/ surface contradict itself.
+    """
+    cache = cache_payload(tmp_path, [md_file()])
+    run(cache_path=cache, config=cfg, env={})
+    assert "الحالة: **ok**" in (tmp_path / "data" / "latest.md").read_text(encoding="utf-8")
+
+    run(config=cfg, env={})
+    latest = (tmp_path / "data" / "latest.md").read_text(encoding="utf-8")
+    assert "الحالة: **not_configured**" in latest
+    assert "الحالة: **ok**" not in latest
+    # the preserved catalog is still listed, but labelled as preserved
+    assert "doc.md" in latest
+    assert "محفوظة من تشغيل سابق" in latest
+    assert "GOOGLE_DRIVE_REFRESH_TOKEN" in latest      # names only, as always
+
+
+def test_error_run_digest_reports_error_and_preserves_catalog(tmp_path, cfg):
+    cache = cache_payload(tmp_path, [md_file()])
+    run(cache_path=cache, config=cfg, env={})
+    good_files = (tmp_path / "data" / "files.json").read_bytes()
+
+    summary = run(cache_path=tmp_path / "missing.json", config=cfg, env={})
+    assert summary["status"] == "error"
+    assert (tmp_path / "data" / "files.json").read_bytes() == good_files
+    latest = (tmp_path / "data" / "latest.md").read_text(encoding="utf-8")
+    assert "الحالة: **error**" in latest
+    assert "doc.md" in latest
+
+
+def test_digest_without_any_published_content_says_so(tmp_path, cfg):
+    summary = run(config=cfg, env={})                  # not_configured, nothing on disk
+    assert summary["status"] == "not_configured"
+    data = tmp_path / "data"
+    assert not (data / "files.json").exists()
+    latest = (data / "latest.md").read_text(encoding="utf-8")
+    assert "لا يوجد محتوى منشور من هذا التشغيل" in latest
+    manifest = json.loads((data / "manifest.json").read_text(encoding="utf-8"))
+    assert list(manifest["artifacts"]) == ["latest.md"]
+    assert manifest["last_good_run"] is None           # nothing good ever happened
+
+
+def test_seeded_data_is_not_reported_as_a_successful_run(tmp_path):
+    """A repo that ships data/ without a recorded ok run must not claim one."""
+    from sync.store import write_run
+
+    data = tmp_path / "data"
+    data.mkdir(parents=True, exist_ok=True)
+    (data / "files.json").write_text('{"files": []}', encoding="utf-8")   # seeded catalog
+    manifest = write_run(data, run_id="RUN-1", status="not_configured", files_payload=None,
+                         source_info={"type": "google-drive"}, counts={"files": 0},
+                         keep_runs=100)
+    assert manifest["last_good_run"]["status"] == "seeded"
+    assert manifest["last_good_run"]["run_id"] == "seeded"
+    assert "no successful sync run recorded" in manifest["last_good_run"]["note"]
 
 
 def test_scan_gate_quarantines_slipped_secret(tmp_path, cfg):
@@ -112,12 +176,18 @@ def test_scan_gate_quarantines_slipped_secret(tmp_path, cfg):
     assert summary["scan_findings"] >= 1
     data = tmp_path / "data"
     assert not (data / "files.json").exists()      # content quarantined
-    assert not (data / "latest.md").exists()
     manifest = json.loads((data / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "blocked_scan"
     assert manifest["scan_findings"][0]["rule"] == "assigned_secret"
     # the secret itself must not appear anywhere in the manifest
     assert "AKIAIOSFODNN7EXAMPLE1" not in json.dumps(manifest)
+    # the digest is rewritten (not left stale, not left missing) and stays honest
+    latest = (data / "latest.md").read_text(encoding="utf-8")
+    assert "blocked_scan" in latest
+    assert "AKIAIOSFODNN7EXAMPLE1" not in latest
+    assert "doc.md" not in latest                  # quarantined catalog is not listed
+    assert "files.json" not in manifest["artifacts"]
+    assert manifest["artifacts"]["latest.md"]["written"] is True
 
 
 def test_history_accumulates_and_dedupes_same_run(tmp_path, cfg, monkeypatch):
