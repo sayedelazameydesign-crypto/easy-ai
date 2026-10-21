@@ -6,7 +6,7 @@
   "redactions": 0,
   "with_content": 0
  },
- "generated_at": "2026-10-21T18:37:07Z",
+ "generated_at": "2026-10-21T22:19:39Z",
  "generator": "easy-ai-sync/1.0.0",
  "history": [
   {
@@ -398,6 +398,12 @@
    "generated_at": "2026-10-21T13:46:23Z",
    "run_id": "20261021T134623Z",
    "status": "not_configured"
+  },
+  {
+   "files": 0,
+   "generated_at": "2026-10-21T18:37:07Z",
+   "run_id": "20261021T183707Z",
+   "status": "not_configured"
   }
  ],
  "last_good_run": {
@@ -414,7 +420,7 @@
  "notes": [
   "half-configured credentials are treated as not configured (gateway rule) — nothing was attempted"
  ],
- "run_id": "20261021T183707Z",
+ "run_id": "20261021T221939Z",
  "scan_findings": [],
  "schema": 1,
  "source": {
