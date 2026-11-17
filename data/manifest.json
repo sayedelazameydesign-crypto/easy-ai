@@ -6,15 +6,9 @@
   "redactions": 0,
   "with_content": 0
  },
- "generated_at": "2026-11-17T13:21:22Z",
+ "generated_at": "2026-11-17T22:20:22Z",
  "generator": "easy-ai-sync/1.0.0",
  "history": [
-  {
-   "files": 0,
-   "generated_at": "2026-10-24T00:40:26Z",
-   "run_id": "20261024T004026Z",
-   "status": "not_configured"
-  },
   {
    "files": 0,
    "generated_at": "2026-10-24T05:50:40Z",
@@ -602,6 +596,12 @@
    "generated_at": "2026-11-17T03:50:45Z",
    "run_id": "20261117T035045Z",
    "status": "not_configured"
+  },
+  {
+   "files": 0,
+   "generated_at": "2026-11-17T13:21:22Z",
+   "run_id": "20261117T132122Z",
+   "status": "not_configured"
   }
  ],
  "last_good_run": {
@@ -618,7 +618,7 @@
  "notes": [
   "half-configured credentials are treated as not configured (gateway rule) — nothing was attempted"
  ],
- "run_id": "20261117T132122Z",
+ "run_id": "20261117T222022Z",
  "scan_findings": [],
  "schema": 1,
  "source": {
